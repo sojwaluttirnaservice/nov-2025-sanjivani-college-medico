@@ -3,6 +3,22 @@ const { Sequelize } = require("sequelize");
 const config = require("../config/config"); // Ensure this contains DB details
 const cleanDuplicateUniqueIndexes = require("./cleanDuplicateUniqueIndexes");
 
+const userSchema = require("../schemas/users");
+const roleSchema = require("../schemas/roles");
+const prescriptionSchema = require("../schemas/prescriptions");
+const pharmacyInventorySchema = require("../schemas/pharmacy_inventory");
+const pharmacySchema = require("../schemas/pharmacies");
+const paymentSchema = require("../schemas/payments");
+const orderSchema = require("../schemas/orders");
+const orderItemSchema = require("../schemas/order_items");
+const notificationSchema = require("../schemas/notifications");
+const medicineSchema = require("../schemas/medicines");
+const feedbackSchema = require("../schemas/feedback");
+const deliveryAgentSchema = require("../schemas/delivery_agents");
+const customerSchema = require("../schemas/customers");
+const adminSchema = require("../schemas/admins");
+const activityLogSchema = require("../schemas/activity_logs");
+
 const createDatabaseIfNotExists = async () => {
     try {
         // Create a new Sequelize instance without specifying a database
