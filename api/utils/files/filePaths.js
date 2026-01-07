@@ -1,11 +1,11 @@
-const fs = require('fs');
-const path = require('path');
-const { isDevMode } = require('../checks/constants');
-const config = require('../../config/config');
+const fs = require("fs");
+const path = require("path");
+const { isDevMode } = require("../checks/constants");
+const config = require("../../config/config");
 
 // Define base directory for uploads (differs for development & production)
-const BASE_UPLOADS_DIR = !isDevMode() ? 'uploads' : 'dev-uploads';
-const BASE_PATH = 'public';
+const BASE_UPLOADS_DIR = !isDevMode() ? "uploads" : "uploads";
+const BASE_PATH = "public";
 
 /**
  * Constructs absolute directory path.
@@ -13,8 +13,8 @@ const BASE_PATH = 'public';
  * @returns {string} - Full directory path.
  */
 const getDirectoryPath = (relativePath) => {
-    let dirPath = path.join(BASE_PATH, BASE_UPLOADS_DIR, relativePath)
-    return dirPath
+  let dirPath = path.join(BASE_PATH, BASE_UPLOADS_DIR, relativePath);
+  return dirPath;
 };
 
 /**
@@ -23,10 +23,10 @@ const getDirectoryPath = (relativePath) => {
  * @returns {string} - Publicly accessible URL path.
  */
 
-const SEPARATOR = path.sep
+const SEPARATOR = path.sep;
 const getRenderPath = (relativePath) => {
-    let renderPath = `${SEPARATOR}${BASE_UPLOADS_DIR}${SEPARATOR}${relativePath}`
-    return renderPath
+  let renderPath = `${SEPARATOR}${BASE_UPLOADS_DIR}${SEPARATOR}${relativePath}`;
+  return renderPath;
 };
 
 /**
@@ -35,30 +35,14 @@ const getRenderPath = (relativePath) => {
  * @returns {Object} - Object containing absolute and public render paths.
  */
 const constructPaths = (relativePath) => ({
-    absolutePath: getDirectoryPath(relativePath),
-    publicPath: getRenderPath(relativePath),
-    relativePath
+  absolutePath: getDirectoryPath(relativePath),
+  publicPath: getRenderPath(relativePath),
+  relativePath,
 });
 
 /**
  * @typedef {Object} UploadPaths
- * @property {UploadPathStructure} psMembersProfileImages - Profile image storage paths for Panchayat Samiti members.
- * @property {UploadPathStructure} noticesAttachments - Storage paths for notices and their attachments.
- * @property {UploadPathStructure} galleryImages - Storage paths for gallery images.
- * @property {UploadPathStructure} heroImages - Storage paths for gallery images.
- * @property {UploadPathStructure} navbarImages - Storage paths for navbar images.
- * 
- * @property {UploadPathStructure} touristSpotsImages - Storage paths for tourist spot images.
- * @property {UploadPathStructure} religiousPlacesImages - Storage paths for religious place images.
- * 
- * @property {UploadPathStructure} reportDocs - Storage paths for reports and documents.
- * @property {UploadPathStructure} employeeDocs - Storage paths for employee documents.
- * @property {UploadPathStructure} departmentDocs - Storage paths for department documents.
- * @property {UploadPathStructure} schemesDocs - Storage paths for schemes documents. 
- * 
- * @property {UploadPathStructure} noticeDocs - Storage paths for documents associated with the notices
- * 
-* @property {UploadPathStructure} grievancesDocs - Storage paths for documents associated with the grievances
+ * @property {UploadPathStructure} prescriptions - Prescription image storage paths for prescriptions.
  */
 
 /**
@@ -75,44 +59,46 @@ const constructPaths = (relativePath) => ({
 
 // sample
 const UPLOAD_PATHS = {
+  psMembersProfileImages: constructPaths(
+    path.join("images", "people", "psMembers")
+  ),
 
-    psMembersProfileImages: constructPaths(path.join('images', 'people', 'psMembers')),
+  // DOCUMENTS
 
-    // DOCUMENTS
+  // reportDocs: constructPaths(path.join('documents', 'reportDocs')),
 
-    // reportDocs: constructPaths(path.join('documents', 'reportDocs')),
+  // videos
 
-    // videos
-
-    // videoFiles: constructPaths(path.join('videos', 'videoGallery'))
+  // videoFiles: constructPaths(path.join('videos', 'videoGallery'))
 };
-
 
 /**
  * Creates a directory if it does not exist.
  * @param {string} dirPath - The absolute path of the directory to create.
  */
 const ensureDirectoryExists = (dirPath) => {
-    if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, { recursive: true });
-    }
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
 };
 
 /**
  * Ensures all required upload directories are created.
  */
 const initializeUploadDirectories = () => {
-    try {
-        Object.values(UPLOAD_PATHS).forEach(({ absolutePath }) => {
-            ensureDirectoryExists(absolutePath);
-        });
-        console.log(`✅ All required upload directories have been successfully created in ${isDevMode() ? 'dev-uploads' : 'uploads'}`);
-    } catch (error) {
-        console.error(`❌ Error creating upload directories: ${error.message}`);
-    }
+  try {
+    Object.values(UPLOAD_PATHS).forEach(({ absolutePath }) => {
+      ensureDirectoryExists(absolutePath);
+    });
+    console.log(
+      `✅ All required upload directories have been successfully created in ${
+        isDevMode() ? "dev-uploads" : "uploads"
+      }`
+    );
+  } catch (error) {
+    console.error(`❌ Error creating upload directories: ${error.message}`);
+  }
 };
-
-
 
 /**
  * Deletes a file if it exists.
@@ -120,22 +106,20 @@ const initializeUploadDirectories = () => {
  * @returns {Promise<boolean>} - Resolves `true` if deleted, `false` if file doesn't exist.
  */
 const deleteFile = async (deletePath) => {
-    try {
-        if (fs.existsSync(deletePath)) {
-            await fs.promises.unlink(deletePath);
-            console.log(`✅ File deleted: ${deletePath}`);
-            return true;
-        } else {
-            console.warn(`⚠️ File not found: ${deletePath}`);
-            return false;
-        }
-    } catch (error) {
-        console.error(`❌ Error deleting file: ${error.message}`);
-        return false;
+  try {
+    if (fs.existsSync(deletePath)) {
+      await fs.promises.unlink(deletePath);
+      console.log(`✅ File deleted: ${deletePath}`);
+      return true;
+    } else {
+      console.warn(`⚠️ File not found: ${deletePath}`);
+      return false;
     }
+  } catch (error) {
+    console.error(`❌ Error deleting file: ${error.message}`);
+    return false;
+  }
 };
-
-
 
 /**
  * Checks if a file exists asynchronously.
@@ -143,14 +127,18 @@ const deleteFile = async (deletePath) => {
  * @returns {Promise<boolean>} - Resolves `true` if the file exists, `false` otherwise.
  */
 const fileExists = async (filePath) => {
-    try {
-        await fs.promises.access(filePath, fs.constants.F_OK);
-        return true;
-    } catch (error) {
-        return false;
-    }
+  try {
+    await fs.promises.access(filePath, fs.constants.F_OK);
+    return true;
+  } catch (error) {
+    return false;
+  }
 };
 
-
-module.exports = { UPLOAD_PATHS, initializeUploadDirectories, deleteFile, fileExists, SEPARATOR };
-
+module.exports = {
+  UPLOAD_PATHS,
+  initializeUploadDirectories,
+  deleteFile,
+  fileExists,
+  SEPARATOR,
+};
