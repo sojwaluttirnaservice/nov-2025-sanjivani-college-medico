@@ -3,9 +3,9 @@ const { query } = require("../utils/query/query");
 const usersModel = {
   createUser: (userData) => {
     const q = `INSERT INTO users
-                (email, password)
+                (email, password, role)
                 VALUES
-                (?, ?)`;
+                (?, ?, ?)`;
 
     return query(q, [userData.email, userData.password, userData.role]);
   },

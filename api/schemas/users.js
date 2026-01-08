@@ -25,7 +25,7 @@ const userSchema = sequelize.define(
     },
 
     role: {
-      type: ENUM("CUSTOMER", "ADMIN", "PHARMANCY", "DELIVERY_AGENT"),
+      type: ENUM("CUSTOMER", "ADMIN", "PHARMACY", "DELIVERY_AGENT"),
       allowNull: false,
     },
 

@@ -1,4 +1,4 @@
-// db/db.utils.js
+const db = require("../../config/db.connect");
 
 const query = async (sql, params = [], conn = db) => {
   const [rows] = await conn.query(sql, params);

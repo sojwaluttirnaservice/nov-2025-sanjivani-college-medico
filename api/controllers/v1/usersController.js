@@ -74,6 +74,12 @@ const usersController = {
 
     return sendSuccess(res, 200, "Login Successful", { user, token });
   }),
+
+  verifyUser: asyncHandler(async (req, res) => {
+    // req.user is populated by the auth middleware
+    const user = req.user;
+    return sendSuccess(res, 200, "User verified", { user });
+  }),
 };
 
 module.exports = usersController;

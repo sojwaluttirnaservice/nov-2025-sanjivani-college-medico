@@ -7,11 +7,13 @@ const config = require("../config/config");
  * @returns {string} JWT token
  */
 const generateToken = (payload, expiresIn = "1d") => {
-  if (!process.env.JWT_SECRET_KEY) {
-    throw new Error("JWT_SECRET_KEY is not set in environment variables");
+  const secretKey = config.security.jwtSecret;
+
+  if (!secretKey) {
+    throw new Error("JWT Secret Key is not configured.");
   }
 
-  return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn });
+  return jwt.sign(payload, secretKey, { expiresIn });
 };
 
 /**
@@ -22,7 +24,8 @@ const generateToken = (payload, expiresIn = "1d") => {
  * @returns {string | null} - Returns the token if present, otherwise null
  */
 const extractToken = (req) => {
-  const authHeader = req.headers.authorization;
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  // console.log("extractToken seeing header:", authHeader);
   if (authHeader && authHeader.startsWith("Bearer ")) {
     return authHeader.split(" ")[1];
   }
