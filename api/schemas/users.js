@@ -24,7 +24,7 @@ const userSchema = sequelize.define(
       comment: "Hashed password for the user",
     },
 
-    role_id: {
+    role: {
       type: ENUM("CUSTOMER", "ADMIN", "PHARMANCY", "DELIVERY_AGENT"),
       allowNull: false,
     },
