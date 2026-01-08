@@ -59,9 +59,7 @@ const constructPaths = (relativePath) => ({
 
 // sample
 const UPLOAD_PATHS = {
-  psMembersProfileImages: constructPaths(
-    path.join("images", "people", "psMembers")
-  ),
+  prescriptions: constructPaths(path.join("images", "prescriptions")),
 
   // DOCUMENTS
 

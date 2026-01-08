@@ -2,10 +2,10 @@
  * @module asyncHandler
  * @description
  * Middleware utility for wrapping asynchronous Express route handlers.
- * 
+ *
  * This function eliminates repetitive try/catch blocks in async route handlers
  * by automatically catching and handling unhandled promise rejections or errors.
- * 
+ *
  * If an error occurs during execution of the wrapped function, it logs the error
  * (including the stack trace in development) and sends a standardized JSON response.
  *
@@ -33,22 +33,26 @@
  * @returns {Function} Wrapped Express middleware function with built-in error handling.
  */
 const asyncHandler = (fn) => {
-    return async (req, res, next = () => {}) => {
-        try {
-            await fn(req, res, next);
-        } catch (err) {
-            console.error(`❌ Error: ${err.message || err}`);
-            console.error('STACK TRACE:', err?.stack);
+  return async (req, res, next = () => {}) => {
+    try {
+      await fn(req, res, next);
+    } catch (err) {
+      console.error(`❌ Error: ${err.message || err}`);
+      console.error("STACK TRACE:", err?.stack);
 
-            return res.status(500).json({
-                success: false,
-                message: err?.message || err?.sqlMessage || 'Internal Server Error',
-                data: null,
-                error: err,
-                stackTrace: process.env.NODE_ENV === 'DEV' ? err.stack : null
-            });
-        }
-    };
+      return res.status(500).json({
+        success: false,
+        message:
+          err?.message ||
+          err?.sqlMessage ||
+          typeof err == "string" ||
+          "Internal Server Error",
+        data: null,
+        error: err,
+        stackTrace: process.env.NODE_ENV === "DEV" ? err.stack : null,
+      });
+    }
+  };
 };
 
 module.exports = asyncHandler;
