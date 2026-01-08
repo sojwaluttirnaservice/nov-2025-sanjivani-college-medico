@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -8,21 +8,24 @@ import { useMutation } from '@tanstack/react-query'
 import { instance } from '../../utils/instance'
 import message from '../../utils/message'
 import Container from '../../components/utils/Container'
-import { setCredentials } from '../../redux/slices/authSlice'
-import { Mail, Lock, UserCircle, Eye, EyeOff, LogIn, ArrowRight } from 'lucide-react'
+import { Mail, Lock, UserCircle, Eye, EyeOff, UserPlus, ArrowRight } from 'lucide-react'
 
 // Validation Schema
-const loginSchema = yup.object({
+const signupSchema = yup.object({
     email: yup.string().email('Invalid email address').required('Email is required'),
     password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
-    role: yup.string().required('Please select a role')
+    confirmPassword: yup.string()
+        .oneOf([yup.ref('password'), null], 'Passwords must match')
+        .required('Confirm Password is required'),
+    role: yup.string().required('Please select a role'),
+    terms: yup.boolean().oneOf([true], 'You must accept the terms and conditions').required()
 }).required()
 
-const LoginPage = () => {
+const SignupPage = () => {
     const navigate = useNavigate()
-    const dispatch = useDispatch()
     const app = useSelector(state => state.app)
     const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     // Role options (only PHARMACY and DELIVERY_AGENT)
     const roles = [
@@ -32,53 +35,41 @@ const LoginPage = () => {
 
     // React Hook Form
     const { register, handleSubmit, formState: { errors } } = useForm({
-        resolver: yupResolver(loginSchema),
+        resolver: yupResolver(signupSchema),
         defaultValues: {
             email: '',
             password: '',
-            role: ''
+            confirmPassword: '',
+            role: '',
+            terms: false
         }
     })
 
     // React Query Mutation
-    const loginMutation = useMutation({
+    const signupMutation = useMutation({
         mutationFn: async (data) => {
-            return await instance.post('/users/login', data)
+            // Remove confirmPassword and terms before sending
+            const { confirmPassword, terms, ...signupData } = data
+            return await instance.post('/users', signupData)
         },
-        onSuccess: (response, variables) => {
+        onSuccess: (response) => {
             if (response.success) {
-                // Dispatch credentials to Redux store (handles localStorage internally)
-                dispatch(setCredentials({
-                    user: response.data.user,
-                    token: response.data.token
-                }))
+                message.success(response.message || 'Signup successful! Please login.')
 
-                message.success(response.message || 'Login successful!')
-
-                // Redirect based on role
+                // Redirect to login page after successful signup
                 setTimeout(() => {
-                    switch (variables.role) {
-                        case 'PHARMACY':
-                            navigate('/pharmacy/dashboard')
-                            break
-                        case 'DELIVERY_AGENT':
-                            navigate('/delivery/dashboard')
-                            break
-                        default:
-                            navigate('/')
-                    }
-                }, 500)
+                    navigate('/auth/login')
+                }, 1500)
             }
         },
         onError: (error) => {
-            console.error('Login error:', error)
-            // Error handling is managed by instance.js interceptor mostly, 
-            // but we can add specific handling here if needed
+            console.error('Signup error:', error)
+            // Error handling is managed by instance.js interceptor
         }
     })
 
     const onSubmit = (data) => {
-        loginMutation.mutate(data)
+        signupMutation.mutate(data)
     }
 
     return (
@@ -102,14 +93,14 @@ const LoginPage = () => {
                             </span>
                         </div>
                         <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
-                            Welcome Back
+                            Create Account
                         </h1>
                         <p className="text-gray-600">
-                            Sign in to access your {app.name} account
+                            Join {app.name} and start managing your services
                         </p>
                     </div>
 
-                    {/* Login Form Card */}
+                    {/* Signup Form Card */}
                     <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 md:p-10">
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                             {/* Email Input */}
@@ -169,6 +160,40 @@ const LoginPage = () => {
                                 )}
                             </div>
 
+                            {/* Confirm Password Input */}
+                            <div>
+                                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
+                                    Confirm Password
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <Lock className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        id="confirmPassword"
+                                        {...register('confirmPassword')}
+                                        className={`w-full pl-12 pr-12 py-3 rounded-xl border ${errors.confirmPassword ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-gray-200 focus:border-teal-500 focus:ring-teal-200'
+                                            } focus:ring-2 outline-none transition-all duration-300`}
+                                        placeholder="••••••••"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                    >
+                                        {showConfirmPassword ? (
+                                            <EyeOff className="h-5 w-5" />
+                                        ) : (
+                                            <Eye className="h-5 w-5" />
+                                        )}
+                                    </button>
+                                </div>
+                                {errors.confirmPassword && (
+                                    <p className="mt-2 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                                )}
+                            </div>
+
                             {/* Role Selection */}
                             <div>
                                 <label htmlFor="role" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -202,61 +227,65 @@ const LoginPage = () => {
                                 )}
                             </div>
 
-                            {/* Remember Me & Forgot Password */}
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center">
+                            {/* Terms & Conditions */}
+                            <div>
+                                <div className="flex items-start">
                                     <input
-                                        id="remember-me"
-                                        name="remember-me"
+                                        id="terms"
                                         type="checkbox"
-                                        className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded cursor-pointer"
+                                        {...register('terms')}
+                                        className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded cursor-pointer mt-1"
                                     />
-                                    <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer">
-                                        Remember me
+                                    <label htmlFor="terms" className="ml-2 block text-sm text-gray-700 cursor-pointer">
+                                        I agree to the{' '}
+                                        <a href="#" className="text-teal-600 hover:text-teal-700 font-medium">
+                                            Terms of Service
+                                        </a>
+                                        {' '}and{' '}
+                                        <a href="#" className="text-teal-600 hover:text-teal-700 font-medium">
+                                            Privacy Policy
+                                        </a>
                                     </label>
                                 </div>
-                                <button
-                                    type="button"
-                                    className="text-sm font-semibold text-teal-600 hover:text-teal-700 transition-colors"
-                                >
-                                    Forgot password?
-                                </button>
+                                {errors.terms && (
+                                    <p className="mt-2 text-sm text-red-600">{errors.terms.message}</p>
+                                )}
                             </div>
 
                             {/* Submit Button */}
                             <button
                                 type="submit"
-                                disabled={loginMutation.isPending}
+                                disabled={signupMutation.isPending}
                                 className="w-full px-8 py-4 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                             >
-                                {loginMutation.isPending ? (
+                                {signupMutation.isPending ? (
                                     <>
                                         <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
-                                        Signing in...
+                                        Creating account...
                                     </>
                                 ) : (
                                     <>
-                                        <LogIn className="w-5 h-5" />
-                                        Sign In
+                                        <UserPlus className="w-5 h-5" />
+                                        Create Account
                                         <ArrowRight className="w-5 h-5" />
                                     </>
                                 )}
                             </button>
                         </form>
 
-                        {/* Sign Up Link */}
+                        {/* Login Link */}
                         <div className="mt-6 text-center">
                             <p className="text-sm text-gray-600">
-                                Don't have an account?{' '}
+                                Already have an account?{' '}
                                 <button
                                     type="button"
-                                    onClick={() => navigate('/auth/signup')}
+                                    onClick={() => navigate('/auth/login')}
                                     className="font-semibold text-teal-600 hover:text-teal-700 transition-colors"
                                 >
-                                    Sign up now
+                                    Sign in
                                 </button>
                             </p>
                         </div>
@@ -265,10 +294,8 @@ const LoginPage = () => {
                     {/* Additional Info */}
                     <div className="mt-8 text-center">
                         <p className="text-sm text-gray-500">
-                            By signing in, you agree to our{' '}
-                            <a href="#" className="text-teal-600 hover:text-teal-700 font-medium">Terms of Service</a>
-                            {' '}and{' '}
-                            <a href="#" className="text-teal-600 hover:text-teal-700 font-medium">Privacy Policy</a>
+                            Need help? Contact our{' '}
+                            <a href="/contact" className="text-teal-600 hover:text-teal-700 font-medium">support team</a>
                         </p>
                     </div>
                 </div>
@@ -277,4 +304,4 @@ const LoginPage = () => {
     )
 }
 
-export default LoginPage
+export default SignupPage
