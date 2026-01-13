@@ -1,8 +1,9 @@
 import axios from "axios";
 import toast from "react-hot-toast";
+import clientConfig from "../config/clientConfig";
 
 const instance = axios.create({
-  baseURL: "http://localhost:2555/api/v1",
+  baseURL: clientConfig.API_URL,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

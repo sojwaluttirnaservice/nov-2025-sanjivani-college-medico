@@ -1,53 +1,97 @@
 const jwt = require("jsonwebtoken");
 const config = require("../config/config");
+
 /**
  * Generate JWT token
- * @param {Object} payload - Payload to embed in token (user ID, email, role, etc.)
- * @param {string} [expiresIn='1d'] - Expiration time (1d = 1 day)
- * @returns {string} JWT token
+ * @param {Object} payload - Payload to embed in token (id, email, role)
+ * @param {string} [expiresIn='1d'] - Token expiry
+ * @returns {string}
  */
 const generateToken = (payload, expiresIn = "1d") => {
-  const secretKey = config.security.jwtSecret;
+  const secretKey = config?.security?.jwtSecret;
 
   if (!secretKey) {
-    throw new Error("JWT Secret Key is not configured.");
+    throw new Error("JWT secret key is not configured");
   }
 
-  return jwt.sign(payload, secretKey, { expiresIn });
+  if (!payload || typeof payload !== "object") {
+    throw new Error("JWT payload must be a valid object");
+  }
+
+  return jwt.sign(payload, secretKey, {
+    expiresIn,
+    algorithm: "HS256",
+  });
 };
 
 /**
- * Extracts the JWT token from the Authorization header in the request.
- * Assumes the header is in the format: "Bearer <token>"
+ * Extract JWT token from Authorization header
+ * Format: Authorization: Bearer <token>
  *
- * @param {import('express').Request} req - Express request object
- * @returns {string | null} - Returns the token if present, otherwise null
+ * @param {import('express').Request} req
+ * @returns {string|null}
  */
 const extractToken = (req) => {
-  const authHeader = req.headers.authorization || req.headers.Authorization;
-  // console.log("extractToken seeing header:", authHeader);
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    return authHeader.split(" ")[1];
+  if (!req || !req.headers) return null;
+
+  const authHeader =
+    req.headers.authorization || req.headers.Authorization;
+
+  if (!authHeader || typeof authHeader !== "string") {
+    return null;
   }
-  return null;
+
+  const parts = authHeader.split(" ");
+
+  if (parts.length !== 2 || parts[0] !== "Bearer") {
+    return null;
+  }
+
+  return parts[1] || null;
 };
 
 /**
- * Verifies a JWT token using the configured secret key.
+ * Verify JWT token
  *
- * @param {string} receivedToken - The JWT token to verify
- * @param {boolean} [ignoreExpiration=false] - Whether to ignore token expiration
- * @returns {object | null} - Returns the decoded payload if valid, otherwise null
+ * @param {string} token
+ * @param {boolean} [ignoreExpiration=false]
+ * @returns {Object|null}
  */
-const verifyToken = (receivedToken, ignoreExpiration = false) => {
+const verifyToken = (token, ignoreExpiration = false) => {
+  if (!token || typeof token !== "string") {
+    return null;
+  }
+
+  const secretKey = config?.security?.jwtSecret;
+  if (!secretKey) {
+    console.error("JWT secret key missing");
+    return null;
+  }
+
   try {
-    const secretKey = config.security.jwtSecret;
-    const decoded = jwt.verify(receivedToken, secretKey, {
-      ignoreExpiration,
-    });
-    return decoded;
+    return jwt.verify(token, secretKey, { ignoreExpiration });
   } catch (err) {
-    console.error("Token verification failed:", err.message);
+    // expected failures: expired / malformed / invalid signature
+    if (process.env.NODE_ENV !== "production") {
+      console.error("JWT verification failed:", err.message);
+    }
+    return null;
+  }
+};
+
+/**
+ * Decode JWT token without verification (⚠️ DO NOT TRUST OUTPUT)
+ *
+ * @param {import('express').Request} req
+ * @returns {Object|null}
+ */
+const decodeToken = (req) => {
+  const token = extractToken(req);
+  if (!token) return null;
+
+  try {
+    return jwt.decode(token) || null;
+  } catch {
     return null;
   }
 };
@@ -56,4 +100,5 @@ module.exports = {
   generateToken,
   extractToken,
   verifyToken,
+  decodeToken,
 };

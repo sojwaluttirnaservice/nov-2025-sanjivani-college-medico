@@ -1,17 +1,17 @@
 const db = require("../../config/db.connect");
 
-const query = async (sql, params = [], conn = db) => {
-  const [rows] = await conn.query(sql, params);
+const query = async (sqlQuery, params = [], conn = db) => {
+  const [rows] = await conn.query(sqlQuery, params);
   return rows;
 };
 
-const queryOne = async (sql, params = [], conn = db) => {
-  const rows = await query(sql, params, conn);
+const queryOne = async (sqlQuery, params = [], conn = db) => {
+  const rows = await query(sqlQuery, params, conn);
   return rows[0] || null;
 };
 
-const rawQuery = (sql, params = [], conn = db) => {
-  return conn.query(sql, params); // full response
+const rawQuery = (sqlQuery, params = [], conn = db) => {
+  return conn.query(sqlQuery, params); // full response
 };
 
 module.exports = {

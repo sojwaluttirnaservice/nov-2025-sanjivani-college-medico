@@ -1,49 +1,75 @@
 const asyncHandler = require("../utils/asyncHandler");
-const { sendResponse } = require("../utils/responses/ApiResponse");
+const APP_ROLES = require("../utils/checks/roles");
+const { sendError } = require("../utils/responses/ApiResponse");
+const STATUS = require("../utils/status");
 const { extractToken, verifyToken } = require("../utils/token");
 
+// Admin-only access
 const isAdmin = asyncHandler(async (req, res, next) => {
-  // verification logic goes here
-
   const token = extractToken(req);
-
-  if (!token) {
-    return sendResponse(res, 401, false, "No token provided.");
-  }
+  if (!token) return sendError(res, STATUS.UNAUTHORIZED, "No token provided.");
 
   const decoded = verifyToken(token);
-
-  if (!decoded || decoded.role !== "admin") {
-    return sendResponse(res, 403, false, "Access denied. Admins only.");
+  if (!decoded || decoded.role !== APP_ROLES.ADMIN) {
+    return sendError(res, STATUS.FORBIDDEN, "Access denied. Admins only.");
   }
 
   req.user = decoded;
-
   next();
 });
 
+// Authenticated access for any role
 const isAuthenticated = asyncHandler(async (req, res, next) => {
-  // Debug logging
-  console.log("Auth Header:", req.headers.authorization);
-
   const token = extractToken(req);
-  console.log("Extracted Token:", token);
-
-  if (!token) {
-    console.log("No token found");
-    return sendResponse(res, 401, false, "No token provided.");
-  }
+  if (!token) return sendError(res, STATUS.UNAUTHORIZED, "No token provided.");
 
   const decoded = verifyToken(token);
-  console.log("Decoded:", decoded);
+  if (!decoded) return sendError(res, STATUS.UNAUTHORIZED, "Invalid or expired token.");
 
-  if (!decoded) {
-    console.log("Token verification failed");
-    return sendResponse(res, 401, false, "Invalid or expired token.");
+  req.user = decoded;
+  next();
+});
+
+// Customer-only access
+const isCustomer = asyncHandler(async (req, res, next) => {
+  const token = extractToken(req);
+  if (!token) return sendError(res, STATUS.UNAUTHORIZED, "No token provided.");
+
+  const decoded = verifyToken(token);
+  if (!decoded || decoded.role !== APP_ROLES.CUSTOMER) {
+    return sendError(res, STATUS.FORBIDDEN, "Access denied. Customers only.");
   }
 
   req.user = decoded;
   next();
 });
 
-module.exports = { isAdmin, isAuthenticated };
+// Delivery Agent-only access
+const isDeliveryAgent = asyncHandler(async (req, res, next) => {
+  const token = extractToken(req);
+  if (!token) return sendError(res, STATUS.UNAUTHORIZED, "No token provided.");
+
+  const decoded = verifyToken(token);
+  if (!decoded || decoded.role !== APP_ROLES.DELIVERY_AGENT) {
+    return sendError(res, STATUS.FORBIDDEN, "Access denied. Delivery Agents only.");
+  }
+
+  req.user = decoded;
+  next();
+});
+
+// Pharmacy-only access
+const isPharmacy = asyncHandler(async (req, res, next) => {
+  const token = extractToken(req);
+  if (!token) return sendError(res, STATUS.UNAUTHORIZED, "No token provided.");
+
+  const decoded = verifyToken(token);
+  if (!decoded || decoded.role !== APP_ROLES.PHARMACY) {
+    return sendError(res, STATUS.FORBIDDEN, "Access denied. Pharmacies only.");
+  }
+
+  req.user = decoded;
+  next();
+});
+
+module.exports = { isAdmin, isAuthenticated, isCustomer, isPharmacy, isDeliveryAgent };

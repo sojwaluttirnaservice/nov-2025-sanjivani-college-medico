@@ -8,9 +8,9 @@ const prescriptionsRouter = getRouter();
 const upload = configureMulter(UPLOAD_PATHS.prescriptions.absolutePath);
 
 prescriptionsRouter.post(
-  "/read",
+  "/upload",
   upload.single("prescription"),
-  prescriptionsController.readPrescriptions
+  prescriptionsController.uploadPrescription
 );
 
 module.exports = prescriptionsRouter;

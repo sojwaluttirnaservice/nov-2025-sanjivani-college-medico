@@ -1,5 +1,6 @@
 const { ENUM, INTEGER, STRING, DATE, BOOLEAN } = require("sequelize");
 const sequelize = require("../config/sequelize");
+const APP_ROLES = require("../utils/checks/roles");
 
 const userSchema = sequelize.define(
   "users", // Table name: Stores user account information
@@ -25,7 +26,7 @@ const userSchema = sequelize.define(
     },
 
     role: {
-      type: ENUM("CUSTOMER", "ADMIN", "PHARMACY", "DELIVERY_AGENT"),
+      type: ENUM(APP_ROLES.CUSTOMER, APP_ROLES.ADMIN, APP_ROLES.PHARMACY, APP_ROLES.DELIVERY_AGENT),
       allowNull: false,
     },
 

@@ -11,4 +11,6 @@ usersRouter.post("/login", usersController.login);
 
 usersRouter.get("/verify", isAuthenticated, usersController.verifyUser);
 
+usersRouter.get('/me', isAuthenticated, usersController.getProfile)
+
 module.exports = usersRouter;

@@ -1,5 +1,5 @@
 const path = require('path');
-const status = require('./statusCodes'); // <-- replace this path later
+const STATUS = require('../status');
 
 /**
  * ResponseHelper class provides standardized API responses and page rendering.
@@ -16,7 +16,7 @@ class ResponseHelper {
      * @param {Object|null} [data=null] - Optional data payload to include in the response.
      * @param {Object|string|null} [error=null] - Optional error details for debugging or logging.
      */
-    static sendResponse(res, statusCode = status.OK, success = false, message = '', data = null, error = null) {
+    static sendResponse(res, statusCode = STATUS.OK, success = false, message = '', data = null, error = null) {
         return res.status(statusCode).json({
             statusCode,
             success,
@@ -36,7 +36,7 @@ class ResponseHelper {
      * @param {Object|null} [data=null] - Additional context or metadata related to the error.
      * @param {Object|string|null} [error=null] - Detailed error object or stack trace.
      */
-    static sendError(res, statusCode = status.INTERNAL_SERVER_ERROR, success = false, message = '', data = null, error = null) {
+    static sendError(res, statusCode = STATUS.INTERNAL_SERVER_ERROR, success = false, message = '', data = null, error = null) {
         return res.status(statusCode).json({
             statusCode,
             success,

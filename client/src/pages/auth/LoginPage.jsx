@@ -29,14 +29,14 @@ const LoginPage = () => {
         { value: 'PHARMACY', label: 'Pharmacy', description: 'Manage pharmacy inventory' },
         { value: 'DELIVERY_AGENT', label: 'Delivery Agent', description: 'Handle deliveries' }
     ]
-
+    
     // React Hook Form
     const { register, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(loginSchema),
         defaultValues: {
-            email: '',
-            password: '',
-            role: ''
+            email: 's@gmail.com',
+            password: '123456',
+            role: 'PHARMACY'
         }
     })
 

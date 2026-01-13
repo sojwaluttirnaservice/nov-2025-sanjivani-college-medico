@@ -1,7 +1,14 @@
+const customersModel = require("../../models/customers.model");
 const usersModel = require("../../models/users.model");
 const asyncHandler = require("../../utils/asyncHandler");
+const APP_ROLES = require("../../utils/checks/roles");
 const { sendSuccess, sendError } = require("../../utils/responses/ApiResponse");
-const { generateToken } = require("../../utils/token");
+const STATUS = require("../../utils/status");
+const {
+  generateToken,
+  extractToken,
+  decodeToken,
+} = require("../../utils/token");
 
 /**
  * Simple input validation
@@ -31,18 +38,22 @@ const usersController = {
     // Validate input
     const validationError = validateUserInput({ email, password, role });
     if (validationError) {
-      return sendError(res, 400, validationError);
+      return sendError(res, STATUS.BAD_REQUEST, validationError);
     }
 
     // Check if user already exists
     const [existingUser] = await usersModel.getUserByEmail(email);
     if (existingUser) {
-      return sendError(res, 409, "User with this email already exists.");
+      return sendError(
+        res,
+        STATUS.CONFLICT,
+        "User with this email already exists."
+      );
     }
 
     await usersModel.createUser({ email, password, role });
 
-    return sendSuccess(res, 201, "Signup successful");
+    return sendSuccess(res, STATUS.CREATED, "Signup successful");
   }),
 
   login: asyncHandler(async (req, res) => {
@@ -51,17 +62,17 @@ const usersController = {
     // Validate input
     const validationError = validateUserInput({ email, password, role });
     if (validationError) {
-      return sendError(res, 400, validationError);
+      return sendError(res, STATUS.BAD_REQUEST, validationError);
     }
 
     const [existingUser] = await usersModel.getUserByEmail(email);
 
     if (!existingUser) {
-      return sendError(res, 404, "User not found.");
+      return sendError(res, STATUS.NOT_FOUND, "User not found.");
     }
 
     if (existingUser.password !== password) {
-      return sendError(res, 401, "Invalid Credentials");
+      return sendError(res, STATUS.NOT_FOUND, "Invalid Credentials");
     }
 
     const user = {
@@ -72,13 +83,38 @@ const usersController = {
 
     const token = generateToken(user);
 
-    return sendSuccess(res, 200, "Login Successful", { user, token });
+    return sendSuccess(res, STATUS.OK, "Login Successful", { user, token });
   }),
 
   verifyUser: asyncHandler(async (req, res) => {
     // req.user is populated by the auth middleware
     const user = req.user;
-    return sendSuccess(res, 200, "User verified", { user });
+    return sendSuccess(res, STATUS.OK, "User verified", { user });
+  }),
+
+  getProfile: asyncHandler(async (req, res) => {
+    // req.user is already populated by auth middleware
+    const { id: userId, role } = req.user;
+
+    console.log(req.user)
+
+    let user;
+
+    if (role === APP_ROLES.CUSTOMER) {
+      user = await customersModel.getWithUser(userId);
+    } else if (role === APP_ROLES.PHARMACY) {
+      // user = await pharmacyModel.getWithUser(userId);
+    } else if (role === APP_ROLES.DELIVERY_AGENT) {
+      // user = await deliveryAgentModel.getWithUser(userId);
+    } else {
+      return sendError(res, STATUS.FORBIDDEN, "Role not supported");
+    }
+
+    if (!user) {
+      return sendError(res, STATUS.NOT_FOUND, "User profile not found");
+    }
+
+    return sendSuccess(res, STATUS.OK, "User Fetched Successfully", { user });
   }),
 };
 

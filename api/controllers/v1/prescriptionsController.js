@@ -1,17 +1,20 @@
+const { devAnalysedResult } = require("../../data/dev-data/prescription");
 const { analyzePrescription } = require("../../services/extractPrescription");
 const asyncHandler = require("../../utils/asyncHandler");
 const { UPLOAD_PATHS } = require("../../utils/files/filePaths");
-const { sendResponse } = require("../../utils/responses/ApiResponse");
+const { sendSuccess } = require("../../utils/responses/ApiResponse");
 
 const prescriptionsController = {
-  readPrescriptions: asyncHandler(async (req, res) => {
-    console.log(req.files);
+  uploadPrescription: asyncHandler(async (req, res) => {
 
-    let path = `${UPLOAD_PATHS.prescriptions.absolutePath}/jZ171123684_557231_1767813690716.jpg`;
-    let analysedResult = await analyzePrescription(path);
-    // console.log(result);
-    return sendResponse(res, 200, true, "Prescriptions analyzed successfully", {
-      analysedResult,
+    let path = `${UPLOAD_PATHS.prescriptions.absolutePath}/fIaZi762778_145170_1768286033149.jpg`;
+    
+    // let analysedResult = await analyzePrescription(path);
+
+    let prescriptionAnalysis = devAnalysedResult
+
+    return sendSuccess(res, 200, true, "Prescriptions analyzed successfully", {
+      prescriptionAnalysis,
     });
   }),
 };

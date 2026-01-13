@@ -1,0 +1,58 @@
+{
+    "statusCode": 200,
+    "success": true,
+    "message": true,
+    "data": "Prescriptions analyzed successfully",
+    "error": {
+        "analysedResult": {
+            "success": true,
+            "patient_name": "John Smith",
+            "doctor_name": "Dr. Steve Johnson",
+            "prescription_date": "09-11-2012",
+            "medicines": [
+                {
+                    "id": 1,
+                    "name": "Betaloc 100mg Tablet",
+                    "quantity": 1,
+                    "frequency": "Twice daily",
+                    "duration": null,
+                    "confidence": 100,
+                    "needs_verification": false
+                },
+                {
+                    "id": 2,
+                    "name": "Dorzolamidum 10mg Tablet",
+                    "quantity": 1,
+                    "frequency": "Twice daily",
+                    "duration": null,
+                    "confidence": 100,
+                    "needs_verification": false
+                },
+                {
+                    "id": 3,
+                    "name": "Cimetidine 50mg Tablet",
+                    "quantity": 2,
+                    "frequency": "Three times daily",
+                    "duration": null,
+                    "confidence": 100,
+                    "needs_verification": false
+                },
+                {
+                    "id": 4,
+                    "name": "Oxprelol 50mg Tablet",
+                    "quantity": 1,
+                    "frequency": "QD",
+                    "duration": null,
+                    "confidence": 100,
+                    "needs_verification": false
+                }
+            ],
+            "total_medicines": 4,
+            "average_confidence": 100,
+            "low_confidence_count": 0,
+            "needs_manual_review": false,
+            "analyzed_at": "2026-01-13T06:48:38.940Z",
+            "processing_time_ms": 8602
+        }
+    }
+}

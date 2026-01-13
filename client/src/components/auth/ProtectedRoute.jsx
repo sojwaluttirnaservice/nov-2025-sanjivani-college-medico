@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation, Outlet } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectIsAuthenticated, selectCurrentUser, selectCurrentToken, setCredentials, logout } from '../../redux/slices/authSlice'
 import { instance } from '../../utils/instance'
 import message from '../../utils/message'
 import { Loader2 } from 'lucide-react'
 
-const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+const ProtectedRoute = ({ allowedRoles = [] }) => {
     const dispatch = useDispatch()
     const location = useLocation()
     const isAuthenticated = useSelector(selectIsAuthenticated)
@@ -84,7 +84,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     }
 
     // 4. Authorized -> Render content
-    return children
+    return <Outlet />
 }
 
 export default ProtectedRoute
