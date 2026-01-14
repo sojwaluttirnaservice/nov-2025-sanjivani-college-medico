@@ -3,4 +3,5 @@ node_modules
 
 # api folder
 api/public/dev-uploads
+api/public/uploads/
 .env

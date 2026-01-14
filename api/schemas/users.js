@@ -1,6 +1,6 @@
-const { INTEGER, STRING, DATE, BOOLEAN } = require("sequelize");
+const { ENUM, INTEGER, STRING, DATE, BOOLEAN } = require("sequelize");
 const sequelize = require("../config/sequelize");
-const Role = require("./roles"); // Import roles schema for association
+const APP_ROLES = require("../utils/checks/roles");
 
 const userSchema = sequelize.define(
   "users", // Table name: Stores user account information
@@ -10,13 +10,6 @@ const userSchema = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
       comment: "Primary key: Unique user ID",
-    },
-
-    username: {
-      type: STRING,
-      allowNull: false,
-      unique: true,
-      comment: "Unique username for login",
     },
 
     email: {
@@ -32,14 +25,9 @@ const userSchema = sequelize.define(
       comment: "Hashed password for the user",
     },
 
-    role_id: {
-      type: INTEGER,
+    role: {
+      type: ENUM(APP_ROLES.CUSTOMER, APP_ROLES.ADMIN, APP_ROLES.PHARMACY, APP_ROLES.DELIVERY_AGENT),
       allowNull: false,
-      references: {
-        model: Role,
-        key: "id",
-      },
-      comment: "Foreign key referencing roles table",
     },
 
     is_active: {
@@ -70,6 +58,5 @@ const userSchema = sequelize.define(
 );
 
 // Association
-userSchema.belongsTo(Role, { foreignKey: "role_id", as: "role" });
 
 module.exports = userSchema;
