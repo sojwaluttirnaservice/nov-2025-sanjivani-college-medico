@@ -12,8 +12,6 @@ const customersController = {
   upsertCustomer: asyncHandler(async (req, res) => {
     const userId = req.body.user_id;
 
-    console.log(userId)
-
     const { full_name, phone, address, city, pincode } = req.body;
 
     // Basic validation
@@ -21,7 +19,7 @@ const customersController = {
       return sendError(
         res,
         STATUS.BAD_REQUEST,
-        "Full Name, phone and address are required"
+        "Full Name, phone and address are required",
       );
     }
 
@@ -45,7 +43,7 @@ const customersController = {
       return sendSuccess(
         res,
         STATUS.OK,
-        "Customer profile updated successfully"
+        "Customer profile updated successfully",
       );
     }
 
@@ -55,7 +53,7 @@ const customersController = {
     return sendSuccess(
       res,
       STATUS.CREATED,
-      "Customer profile created successfully"
+      "Customer profile created successfully",
     );
   }),
 

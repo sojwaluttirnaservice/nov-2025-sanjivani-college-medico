@@ -17,6 +17,7 @@ const deliveryAgentSchema = require("../schemas/delivery_agents");
 const customerSchema = require("../schemas/customers");
 const adminSchema = require("../schemas/admins");
 const activityLogSchema = require("../schemas/activity_logs");
+const prescriptionAnalysisSchema = require("../schemas/prescription_analysis");
 
 const createDatabaseIfNotExists = async () => {
   try {
@@ -31,12 +32,12 @@ const createDatabaseIfNotExists = async () => {
 
     // Check if database exists
     const [results] = await tempSequelize.query(
-      `SHOW DATABASES LIKE '${config.db.database}'`
+      `SHOW DATABASES LIKE '${config.db.database}'`,
     );
 
     if (results.length === 0) {
       console.log(
-        `⚠️  Database '${config.db.database}' does not exist. Creating...`
+        `⚠️  Database '${config.db.database}' does not exist. Creating...`,
       );
       await tempSequelize.query(`CREATE DATABASE ${config.db.database}`);
       console.log(`✅ Database '${config.db.database}' created successfully.`);
@@ -65,12 +66,12 @@ const getSync = async () => {
 
     console.log(
       "\x1b[47m\x1b[30m%s\x1b[0m",
-      `Database ${config.db.database} on host ${config.db.host} has been migrated successfully in "${config.server.env}" mode. You can now start the server.`
+      `Database ${config.db.database} on host ${config.db.host} has been migrated successfully in "${config.server.env}" mode. You can now start the server.`,
     );
 
     console.log(
       "\x1b[47m\x1b[30m%s\x1b[0m",
-      "Use command: npm start (to start the server)"
+      "Use command: npm start (to start the server)",
     );
 
     process.exit();

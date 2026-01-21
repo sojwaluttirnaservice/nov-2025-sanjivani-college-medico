@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 
 /**
  * @typedef {Object} DatabaseConfig
@@ -43,42 +43,42 @@ const ENV = process.env.PROJECT_ENV || "DEV";
  * @type {Record<string, Config>}
  */
 const configs = {
-    DEV: {
-        db: {
-            host: process.env.DB_HOST || "localhost",
-            user: process.env.DB_USER || "root",
-            password: process.env.DB_PASSWORD || "",
-            database: process.env.DB_DATABASE || "dev_db",
-            port: Number(process.env.DB_PORT) || 3306,
-        },
-        allowedOrigin: process.env.ALLOWED_ORIGIN,
-        server: {
-            port: Number(process.env.PORT) || 5000,
-            env: ENV,
-        },
-        security: {
-            jwtSecret: process.env.JWT_SECRET_KEY || "default_jwt_secret",
-            sessionSecret: process.env.SESSION_SECRET || "default_session_secret",
-        },
+  DEV: {
+    db: {
+      host: process.env.DB_HOST || "localhost",
+      user: process.env.DB_USER || "root",
+      password: process.env.DB_PASSWORD || "",
+      database: process.env.DB_DATABASE || "dev_db",
+      port: Number(process.env.DB_PORT) || 3306,
     },
-    PROD: {
-        db: {
-            host: process.env.DB_HOST_PROD || "prod-db-host",
-            user: process.env.DB_USER_PROD || "prod_user",
-            password: process.env.DB_PASSWORD_PROD || "prod_password",
-            database: process.env.DB_DATABASE_PROD || "prod_db",
-            port: Number(process.env.DB_PORT_PROD) || 3306,
-        },
-        allowedOrigin: process.env.ALLOWED_ORIGIN_PROD,
-        server: {
-            port: Number(process.env.PORT) || 5000,
-            env: ENV,
-        },
-        security: {
-            jwtSecret: process.env.JWT_SECRET_KEY_PROD || "prod_jwt_secret",
-            sessionSecret: process.env.SESSION_SECRET_PROD || "prod_session_secret",
-        },
+    allowedOrigin: process.env.ALLOWED_ORIGIN,
+    server: {
+      port: Number(process.env.PORT) || 5000,
+      env: ENV,
     },
+    security: {
+      jwtSecret: process.env.JWT_SECRET_KEY || "default_jwt_secret",
+      sessionSecret: process.env.SESSION_SECRET || "default_session_secret",
+    },
+  },
+  PROD: {
+    db: {
+      host: process.env.DB_HOST_PROD || "prod-db-host",
+      user: process.env.DB_USER_PROD || "prod_user",
+      password: process.env.DB_PASSWORD_PROD || "prod_password",
+      database: process.env.DB_DATABASE_PROD || "prod_db",
+      port: Number(process.env.DB_PORT_PROD) || 3306,
+    },
+    allowedOrigin: process.env.ALLOWED_ORIGIN_PROD,
+    server: {
+      port: Number(process.env.PORT) || 5000,
+      env: ENV,
+    },
+    security: {
+      jwtSecret: process.env.JWT_SECRET_KEY_PROD || "prod_jwt_secret",
+      sessionSecret: process.env.SESSION_SECRET_PROD || "prod_session_secret",
+    },
+  },
 };
 
 module.exports = configs[ENV];

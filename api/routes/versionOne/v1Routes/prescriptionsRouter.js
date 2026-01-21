@@ -10,7 +10,12 @@ const upload = configureMulter(UPLOAD_PATHS.prescriptions.absolutePath);
 prescriptionsRouter.post(
   "/upload",
   upload.single("prescription"),
-  prescriptionsController.uploadPrescription
+  prescriptionsController.uploadPrescription,
+);
+
+prescriptionsRouter.get(
+  "/analysis/:id",
+  prescriptionsController.getPrescriptionWithAnalysis,
 );
 
 module.exports = prescriptionsRouter;

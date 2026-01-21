@@ -73,7 +73,7 @@ const prescriptionSchema = sequelize.define(
     updatedAt: {
       type: DATE,
       defaultValue: sequelize.literal(
-        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
       ),
       allowNull: false,
       comment: "Timestamp when the prescription was last updated",
@@ -81,7 +81,7 @@ const prescriptionSchema = sequelize.define(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Associations
