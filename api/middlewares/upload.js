@@ -18,12 +18,31 @@ const configureMulter = (destPath) => {
         cb(new Error("Failed to set destination folder."), null);
       }
     },
+
     filename: (req, file, cb) => {
       try {
         const generatedName = generateFileName(file);
+
+        // Absolute path on disk
+        const fullPath = path.join(destPath, generatedName);
+        const absolutePath = fullPath; // ✅ assign fullPath to absolutePath
+
+        // Find index of '/uploads' in fullPath
+        const uploadsIndex = fullPath.indexOf("/uploads");
+
+        if (uploadsIndex === -1) {
+          throw new Error("DestPath must include '/uploads' folder");
+        }
+
+        // Slice from /uploads to end → correct DB path
+        const dbPath = fullPath.substring(uploadsIndex).replace(/\\/g, "/"); // Windows fix
+
+        // Attach paths to file object
+        req.fileDBPath = dbPath; // for saving in DB
+        file.fileAbsolutePath = absolutePath; // for server/internal usage (analysis)
+
         cb(null, generatedName);
       } catch (err) {
-        console.log(err);
         cb(new Error(`Failed to generate filename: ${err.message}`), null);
       }
     },

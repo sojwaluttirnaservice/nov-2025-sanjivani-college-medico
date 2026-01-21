@@ -1,4 +1,5 @@
 const customersModel = require("../../models/customers.model");
+const pharmaciesModel = require("../../models/pharmacies.model");
 const usersModel = require("../../models/users.model");
 const asyncHandler = require("../../utils/asyncHandler");
 const APP_ROLES = require("../../utils/checks/roles");
@@ -47,7 +48,7 @@ const usersController = {
       return sendError(
         res,
         STATUS.CONFLICT,
-        "User with this email already exists."
+        "User with this email already exists.",
       );
     }
 
@@ -96,25 +97,25 @@ const usersController = {
     // req.user is already populated by auth middleware
     const { id: userId, role } = req.user;
 
-    console.log(req.user)
-
     let user;
 
     if (role === APP_ROLES.CUSTOMER) {
       user = await customersModel.getWithUser(userId);
     } else if (role === APP_ROLES.PHARMACY) {
-      // user = await pharmacyModel.getWithUser(userId);
+      user = await pharmaciesModel.getWithUser(userId);
     } else if (role === APP_ROLES.DELIVERY_AGENT) {
       // user = await deliveryAgentModel.getWithUser(userId);
     } else {
       return sendError(res, STATUS.FORBIDDEN, "Role not supported");
     }
 
-    if (!user) {
-      return sendError(res, STATUS.NOT_FOUND, "User profile not found");
-    }
+    // Handle empty result - Return null profile instead of 404
+    // This allows the frontend to show an empty "create profile" form
+    const userProfile = user && user.length > 0 ? user[0] : null;
 
-    return sendSuccess(res, STATUS.OK, "User Fetched Successfully", { user });
+    return sendSuccess(res, STATUS.OK, "User Fetched Successfully", {
+      user: userProfile,
+    });
   }),
 };
 
