@@ -109,11 +109,13 @@ const usersController = {
       return sendError(res, STATUS.FORBIDDEN, "Role not supported");
     }
 
-    if (!user) {
-      return sendError(res, STATUS.NOT_FOUND, "User profile not found");
-    }
+    // Handle empty result - Return null profile instead of 404
+    // This allows the frontend to show an empty "create profile" form
+    const userProfile = user && user.length > 0 ? user[0] : null;
 
-    return sendSuccess(res, STATUS.OK, "User Fetched Successfully", { user });
+    return sendSuccess(res, STATUS.OK, "User Fetched Successfully", {
+      user: userProfile,
+    });
   }),
 };
 
