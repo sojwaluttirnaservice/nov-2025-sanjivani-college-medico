@@ -4,7 +4,7 @@ const prescriptionsModel = require("../../models/prescriptions.model");
 const { analyzePrescription } = require("../../services/extractPrescription");
 const asyncHandler = require("../../utils/asyncHandler");
 const { UPLOAD_PATHS } = require("../../utils/files/filePaths");
-const { sendSuccess } = require("../../utils/responses/ApiResponse");
+const { sendSuccess, sendError } = require("../../utils/responses/ApiResponse");
 const STATUS = require("../../utils/status");
 
 const prescriptionsController = {
