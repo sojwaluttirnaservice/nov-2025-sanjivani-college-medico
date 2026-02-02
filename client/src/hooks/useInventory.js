@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import instance from "../utils/instance";
 import { message } from "../utils/message";
@@ -7,7 +8,7 @@ export const useInventory = (pharmacyId) => {
 
   const fetchInventory = async () => {
     const { data } = await instance.get(
-      `/inventory?pharmacyId=${pharmacyId || 1}`
+      `/inventory?pharmacyId=${pharmacyId || 1}`,
     );
     return data;
   };
@@ -29,6 +30,24 @@ export const useInventory = (pharmacyId) => {
     },
   });
 
+  // Simple: Get batches for a medicine
+  const getBatches = useCallback(
+    async (medicineId) => {
+      const { data } = await instance.get(
+        `/inventory/batches?medicineId=${medicineId}&pharmacyId=${pharmacyId || 1}`,
+      );
+      return data;
+    },
+    [pharmacyId],
+  );
+
+  const checkAvailability = async (medicineId, quantity) => {
+    const { data } = await instance.get(
+      `/inventory/availability?medicineId=${medicineId}&quantity=${quantity}&pharmacyId=${pharmacyId || 1}`,
+    );
+    return data;
+  };
+
   return {
     useInventoryQuery: () =>
       useQuery({
@@ -36,5 +55,7 @@ export const useInventory = (pharmacyId) => {
         queryFn: fetchInventory,
       }),
     addStock: addStockMutation,
+    checkAvailability,
+    getBatches,
   };
 };
