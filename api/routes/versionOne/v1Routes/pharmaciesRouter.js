@@ -6,4 +6,10 @@ const pharmaciesRouter = getRouter();
 
 pharmaciesRouter.post("/", isPharmacy, pharmaciesController.upsertPharmacy);
 
+pharmaciesRouter.get(
+  "/",
+  isAuthenticated,
+  pharmaciesController.getAllPharmacies,
+);
+
 module.exports = pharmaciesRouter;

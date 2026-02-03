@@ -132,6 +132,36 @@ const pharmaciesModel = {
         `;
     return query(q, [userId]);
   },
+
+  /**
+   * Get all verified pharmacies
+   * @param {string} searchQuery - Optional search term
+   */
+  getAll: (searchQuery = "") => {
+    let q = `
+            SELECT
+                p.id AS pharmacy_id,
+                p.pharmacy_name,
+                p.license_no,
+                p.contact_no,
+                p.address,
+                p.city,
+                p.pincode,
+                p.is_verified,
+                u.email
+            FROM pharmacies p
+            INNER JOIN users u ON u.id = p.user_id
+            WHERE p.is_verified = 1
+        `;
+
+    const params = [];
+    if (searchQuery) {
+      q += ` AND (p.pharmacy_name LIKE ? OR p.city LIKE ?)`;
+      params.push(`%${searchQuery}%`, `%${searchQuery}%`);
+    }
+
+    return query(q, params);
+  },
 };
 
 module.exports = pharmaciesModel;

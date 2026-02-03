@@ -79,6 +79,18 @@ const pharmaciesController = {
       profile: pharmacy[0],
     });
   }),
+
+  /**
+   * Get all pharmacies (for customers)
+   */
+  getAllPharmacies: asyncHandler(async (req, res) => {
+    const { search } = req.query;
+    const pharmacies = await pharmaciesModel.getAll(search);
+
+    return sendSuccess(res, STATUS.OK, "Pharmacies fetched successfully", {
+      pharmacies,
+    });
+  }),
 };
 
 module.exports = pharmaciesController;
