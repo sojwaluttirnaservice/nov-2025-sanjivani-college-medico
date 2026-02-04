@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
@@ -145,6 +145,7 @@ export default function PharmacyDetailScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+            <Stack.Screen options={{ headerShown: false }} />
             <View className="flex-row items-center p-4 bg-white border-b border-gray-100">
                 <TouchableOpacity onPress={() => router.back()} className="p-2 mr-2">
                     <Ionicons name="arrow-back" size={24} color="#1F2937" />
