@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import instance from "../utils/instance";
-import { message } from "../utils/message";
+import { instance } from "../utils/instance";
+import { showError, showSuccess } from "../utils/error";
 
 export const useInventory = (pharmacyId) => {
   const queryClient = useQueryClient();
@@ -22,11 +22,11 @@ export const useInventory = (pharmacyId) => {
       return data;
     },
     onSuccess: () => {
-      message.success("Stock added successfully");
+      showSuccess("Stock added successfully");
       queryClient.invalidateQueries(["inventory", pharmacyId]);
     },
     onError: (error) => {
-      message.error(error.response?.data?.message || "Failed to add stock");
+      showError(error, "Failed to add stock");
     },
   });
 

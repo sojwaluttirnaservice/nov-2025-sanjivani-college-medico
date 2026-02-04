@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import instance from "../utils/instance";
+import { instance } from "../utils/instance";
 
 export const useDelivery = () => {
   const fetchActiveDeliveries = async () => {

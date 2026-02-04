@@ -10,7 +10,7 @@ const STATUS = require("../../utils/status");
  */
 const pharmaciesController = {
   upsertPharmacy: asyncHandler(async (req, res) => {
-    const userId = req.body.user_id;
+    const userId = req.user.id;
 
     const { pharmacy_name, license_no, contact_no, address, city, pincode } =
       req.body;
@@ -84,8 +84,8 @@ const pharmaciesController = {
    * Get all pharmacies (for customers)
    */
   getAllPharmacies: asyncHandler(async (req, res) => {
-    const { search } = req.query;
-    const pharmacies = await pharmaciesModel.getAll(search);
+    const { search, city, pincode } = req.query;
+    const pharmacies = await pharmaciesModel.getAll(search, city, pincode);
 
     return sendSuccess(res, STATUS.OK, "Pharmacies fetched successfully", {
       pharmacies,

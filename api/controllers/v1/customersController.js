@@ -10,7 +10,7 @@ const STATUS = require("../../utils/status");
  */
 const customersController = {
   upsertCustomer: asyncHandler(async (req, res) => {
-    const userId = req.body.user_id;
+    const userId = req.user.id;
 
     const { full_name, phone, address, city, pincode } = req.body;
 
@@ -63,7 +63,7 @@ const customersController = {
   getProfile: asyncHandler(async (req, res) => {
     const userId = req.user.id;
 
-    const [customer] = await customersModel.getByUserId(userId);
+    const customer = await customersModel.checkByUserId(userId);
 
     if (!customer) {
       return sendSuccess(res, STATUS.OK, "Customer profile not found", {

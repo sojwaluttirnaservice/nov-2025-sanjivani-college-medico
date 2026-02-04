@@ -137,7 +137,7 @@ const pharmaciesModel = {
    * Get all verified pharmacies
    * @param {string} searchQuery - Optional search term
    */
-  getAll: (searchQuery = "") => {
+  getAll: (searchQuery = "", city = "", pincode = "") => {
     let q = `
             SELECT
                 p.id AS pharmacy_id,
@@ -155,10 +155,29 @@ const pharmaciesModel = {
         `;
 
     const params = [];
+
+    // Filter by city (exact or partial match)
+    if (city) {
+      q += ` AND p.city LIKE ?`;
+      params.push(`%${city}%`);
+    }
+
+    // Filter by pincode (exact match)
+    if (pincode) {
+      q += ` AND p.pincode = ?`;
+      params.push(pincode);
+    }
+
     if (searchQuery) {
       q += ` AND (p.pharmacy_name LIKE ? OR p.city LIKE ?)`;
       params.push(`%${searchQuery}%`, `%${searchQuery}%`);
     }
+
+    // Order by: exact city match first, then by name
+    q += ` ORDER BY 
+            CASE WHEN p.city LIKE ? THEN 0 ELSE 1 END,
+            p.pharmacy_name ASC`;
+    params.push(city ? `%${city}%` : "");
 
     return query(q, params);
   },

@@ -4,13 +4,28 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { LogBox } from 'react-native';
 import 'react-native-reanimated';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import useAuthStore from '../store/authStore';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import "../global.css";
 
 // Ignore specific warning logs
-LogBox.ignoreLogs(['SafeAreaView has been deprecated']);
+// Ignore specific warning logs
+LogBox.ignoreLogs([
+    'SafeAreaView has been deprecated',
+    'SafeAreaView has been deprecated and will be removed in a future release',
+]);
+
+// Create a client for TanStack Query
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            retry: 1,
+            staleTime: 5 * 60 * 1000, // 5 minutes
+        },
+    },
+});
 
 export const unstable_settings = {
     anchor: '(tabs)',
@@ -44,13 +59,15 @@ export default function RootLayout() {
     }
 
     return (
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-            </Stack>
-            <StatusBar style="auto" />
-        </ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <Stack>
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                    <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+                </Stack>
+                <StatusBar style="auto" />
+            </ThemeProvider>
+        </QueryClientProvider>
     );
 }

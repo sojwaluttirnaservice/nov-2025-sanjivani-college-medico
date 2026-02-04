@@ -1,37 +1,53 @@
 import { useState, useEffect } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, FlatList, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
 import api from '../../services/api';
+import useAuthStore from '../../store/authStore';
 
 export default function SearchScreen() {
-    const [pharmacies, setPharmacies] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
 
-    const fetchPharmacies = async (query = '') => {
-        try {
-            setLoading(true);
-            const url = query ? `/pharmacies?search=${query}` : '/pharmacies';
-            const response = await api.get(url);
+    // Fetch customer profile to get default location
+    const { data: profileData } = useQuery({
+        queryKey: ['customerProfile'],
+        queryFn: async () => {
+            const response = await api.get('/customers/profile');
+            return response.data;
+        },
+    });
 
-            if (response.success) {
-                setPharmacies(response.data.data || []);
+    const profile = profileData?.exists && Array.isArray(profileData.profile) ? profileData.profile[0] :
+        profileData?.exists ? profileData.profile : null;
+    const defaultCity = profile?.city || '';
+
+    // Fetch pharmacies with search and location
+    const { data: pharmaciesData, isLoading, refetch } = useQuery({
+        queryKey: ['pharmacies', searchQuery, defaultCity],
+        queryFn: async () => {
+            const params = new URLSearchParams();
+
+            if (searchQuery) {
+                params.append('search', searchQuery);
+            } else if (defaultCity) {
+                // If no search query, default to user's city
+                params.append('city', defaultCity);
             }
-        } catch (error) {
-            console.error('Error fetching pharmacies:', error);
-            Alert.alert('Error', error.message || 'Failed to fetch pharmacies');
-        } finally {
-            setLoading(false);
-        }
-    };
 
-    useEffect(() => {
-        fetchPharmacies();
-    }, []);
+            const queryString = params.toString();
+            const url = queryString ? `/pharmacies?${queryString}` : '/pharmacies';
+
+            const response = await api.get(url);
+            return response.data;
+        },
+        enabled: true, // Always matching
+    });
+
+    const pharmacies = pharmaciesData?.pharmacies || [];
 
     const handleSearch = () => {
-        fetchPharmacies(searchQuery);
+        refetch();
     };
 
     const renderItem = ({ item }) => (
@@ -43,9 +59,16 @@ export default function SearchScreen() {
                 <View className="flex-1">
                     <Text className="text-lg font-bold text-gray-900">{item.pharmacy_name}</Text>
                     <Text className="text-gray-500 text-sm mt-1">{item.address}, {item.city}</Text>
-                    <View className="flex-row items-center mt-2">
-                        <Ionicons name="call" size={14} color="#6B7280" />
-                        <Text className="text-gray-500 text-xs ml-1">{item.contact_no}</Text>
+                    <View className="flex-row items-center mt-2 justify-between">
+                        <View className="flex-row items-center">
+                            <Ionicons name="call" size={14} color="#6B7280" />
+                            <Text className="text-gray-500 text-xs ml-1">{item.contact_no}</Text>
+                        </View>
+                        {item.city === defaultCity && (
+                            <View className="bg-blue-100 px-2 py-1 rounded">
+                                <Text className="text-blue-600 text-[10px] font-bold">NEARBY</Text>
+                            </View>
+                        )}
                     </View>
                 </View>
             </View>
@@ -53,8 +76,8 @@ export default function SearchScreen() {
     );
 
     return (
-        <SafeAreaView className="flex-1 bg-gray-50" edges={[]}>
-            <View className="p-4">
+        <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+            <View className="p-4 flex-1">
                 <Text className="text-2xl font-bold text-gray-900 mb-4">Find Pharmacies</Text>
 
                 <View className="flex-row items-center space-x-2 mb-6">
@@ -62,11 +85,17 @@ export default function SearchScreen() {
                         <Ionicons name="search" size={20} color="#9CA3AF" />
                         <TextInput
                             className="flex-1 ml-2 text-gray-800"
-                            placeholder="Search by name or city..."
+                            placeholder={defaultCity ? `Search in ${defaultCity}...` : "Search by name or city..."}
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                             onSubmitEditing={handleSearch}
+                            returnKeyType="search"
                         />
+                        {searchQuery.length > 0 && (
+                            <TouchableOpacity onPress={() => setSearchQuery('')}>
+                                <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+                            </TouchableOpacity>
+                        )}
                     </View>
                     <TouchableOpacity
                         onPress={handleSearch}
@@ -76,7 +105,7 @@ export default function SearchScreen() {
                     </TouchableOpacity>
                 </View>
 
-                {loading ? (
+                {isLoading ? (
                     <ActivityIndicator size="large" color="#2563EB" className="mt-10" />
                 ) : (
                     <FlatList
@@ -84,9 +113,16 @@ export default function SearchScreen() {
                         renderItem={renderItem}
                         keyExtractor={(item) => item.pharmacy_id.toString()}
                         contentContainerStyle={{ paddingBottom: 20 }}
+                        showsVerticalScrollIndicator={false}
                         ListEmptyComponent={
                             <View className="items-center justify-center mt-20">
-                                <Text className="text-gray-500 text-lg">No pharmacies found.</Text>
+                                <Ionicons name="search-outline" size={48} color="#D1D5DB" />
+                                <Text className="text-gray-500 text-lg mt-4">No pharmacies found</Text>
+                                <Text className="text-gray-400 text-base text-center mt-2 px-10">
+                                    {searchQuery
+                                        ? `We couldn't find any pharmacies matching "${searchQuery}"`
+                                        : "Try searching for a pharmacy name or city"}
+                                </Text>
                             </View>
                         }
                     />

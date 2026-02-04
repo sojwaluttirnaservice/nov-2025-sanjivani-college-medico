@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function OrdersScreen() {
     return (
-        <SafeAreaView className="flex-1 bg-white items-center justify-center p-6" edges={[]}>
+        <SafeAreaView className="flex-1 bg-white items-center justify-center p-6" edges={['top']}>
             <View className="w-24 h-24 bg-blue-50 rounded-full items-center justify-center mb-6">
                 {/* Icon place holder */}
                 <Text className="text-4xl">📦</Text>
