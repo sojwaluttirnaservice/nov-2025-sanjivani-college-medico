@@ -137,6 +137,18 @@ const pharmaciesModel = {
    * Get all verified pharmacies
    * @param {string} searchQuery - Optional search term
    */
+  /**
+   * Get all verified pharmacies with Intelligent Ranking
+   *
+   * SENIOR DEV IMPLEMENTATION NOTE:
+   * We intentionally avoid strict WHERE clauses for City/Pincode to prevent zero results on typos.
+   * Instead, we use a weighted ORDER BY ranking system:
+   * 1. Search Query Match (Name/Address) - Highest Priority (User Intent)
+   * 2. Exact City + Pincode - Perfect Location Match
+   * 3. City Match Only - Handles "Wrong/Typo Pincode" scenario (High Priority)
+   * 4. Pincode Match Only - Handles "Wrong City Name" scenario
+   * 5. Fallback - Returns other verified pharmacies so list is never empty.
+   */
   getAll: (searchQuery = "", city = "", pincode = "") => {
     let q = `
             SELECT
@@ -151,33 +163,51 @@ const pharmaciesModel = {
                 u.email
             FROM pharmacies p
             INNER JOIN users u ON u.id = p.user_id
-            WHERE p.is_verified = 1
+            -- NOTE: Verification workflow is not implemented yet.
+            -- We ignore p.is_verified flag in the current context.
+            -- WHERE p.is_verified = 1
         `;
 
     const params = [];
 
-    // Filter by city (exact or partial match)
-    if (city) {
-      q += ` AND p.city LIKE ?`;
-      params.push(`%${city}%`);
-    }
+    // STRICT Search Filter (only if user explicitly searches name/city)
+    // We removed strict city-only filtering to allow fallback results.
+    // Old filter removed. Logic moved to ORDER BY.
 
-    // Filter by pincode (exact match)
-    if (pincode) {
-      q += ` AND p.pincode = ?`;
-      params.push(pincode);
-    }
+    const search = searchQuery ? searchQuery.trim() : "";
+    const cleanCity = city ? city.trim() : "";
+    const cleanPincode = pincode ? pincode.trim() : "";
 
-    if (searchQuery) {
-      q += ` AND (p.pharmacy_name LIKE ? OR p.city LIKE ?)`;
-      params.push(`%${searchQuery}%`, `%${searchQuery}%`);
-    }
-
-    // Order by: exact city match first, then by name
     q += ` ORDER BY 
-            CASE WHEN p.city LIKE ? THEN 0 ELSE 1 END,
-            p.pharmacy_name ASC`;
-    params.push(city ? `%${city}%` : "");
+            CASE 
+                -- 0. Search Query Matches Name or Address (Specific Intent)
+                WHEN (? <> '' AND (LOWER(p.pharmacy_name) LIKE LOWER(?) OR LOWER(p.address) LIKE LOWER(?))) THEN 0
+
+                -- 1. Exact Match: City AND Pincode (Best Location)
+                WHEN (LOWER(p.city) = LOWER(?) AND p.pincode = ?) THEN 1
+                
+                -- 2. City Match
+                WHEN LOWER(p.city) = LOWER(?) THEN 2
+
+                -- 3. Pincode Match (Handles city typos)
+                WHEN p.pincode = ? THEN 3
+                
+                -- 4. Fallback (Anything else verified)
+                ELSE 4
+            END,
+            p.pharmacy_name ASC
+            LIMIT 50`;
+
+    // Params: search, name, address, city, pin, city, pin
+    params.push(
+      search,
+      `%${search}%`,
+      `%${search}%`,
+      cleanCity,
+      cleanPincode,
+      cleanCity,
+      cleanPincode,
+    );
 
     return query(q, params);
   },

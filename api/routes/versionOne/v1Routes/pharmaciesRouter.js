@@ -12,4 +12,10 @@ pharmaciesRouter.get(
   pharmaciesController.getAllPharmacies,
 );
 
+pharmaciesRouter.get(
+  "/:id",
+  isAuthenticated,
+  pharmaciesController.getPharmacyById,
+);
+
 module.exports = pharmaciesRouter;

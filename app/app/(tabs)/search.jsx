@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../services/api';
 import useAuthStore from '../../store/authStore';
@@ -30,8 +31,9 @@ export default function SearchScreen() {
 
             if (searchQuery) {
                 params.append('search', searchQuery);
-            } else if (defaultCity) {
-                // If no search query, default to user's city
+            }
+            // Always append city if available to provide ranking context (Rank 1 vs Rank 3)
+            if (defaultCity) {
                 params.append('city', defaultCity);
             }
 
@@ -51,7 +53,10 @@ export default function SearchScreen() {
     };
 
     const renderItem = ({ item }) => (
-        <TouchableOpacity className="bg-white p-4 rounded-xl mb-3 shadow-sm border border-gray-100">
+        <TouchableOpacity
+            onPress={() => router.push(`/pharmacy/${item.pharmacy_id}`)}
+            className="bg-white p-4 rounded-xl mb-3 shadow-sm border border-gray-100"
+        >
             <View className="flex-row items-center">
                 <View className="w-12 h-12 bg-green-100 rounded-full items-center justify-center mr-4">
                     <Ionicons name="medical" size={24} color="#16A34A" />

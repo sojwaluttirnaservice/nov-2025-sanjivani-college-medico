@@ -58,7 +58,10 @@ export default function HomeScreen() {
     );
 
     const PharmacyCard = ({ pharmacy }) => (
-        <View className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-3">
+        <TouchableOpacity
+            onPress={() => router.push(`/pharmacy/${pharmacy.pharmacy_id}`)}
+            className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-3"
+        >
             <View className="flex-row items-center">
                 <View className="w-12 h-12 bg-green-100 rounded-full items-center justify-center mr-4">
                     <Ionicons name="medical" size={24} color="#16A34A" />
@@ -76,7 +79,7 @@ export default function HomeScreen() {
                     </View>
                 </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     return (

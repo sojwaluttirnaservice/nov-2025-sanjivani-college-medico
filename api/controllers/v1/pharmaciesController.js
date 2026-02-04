@@ -81,11 +81,35 @@ const pharmaciesController = {
   }),
 
   /**
+   * Get pharmacy by ID
+   */
+  getPharmacyById: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const pharmacyData = await pharmaciesModel.getById(id);
+
+    // Provide robust checking for array response
+    const pharmacy =
+      Array.isArray(pharmacyData) && pharmacyData.length
+        ? pharmacyData[0]
+        : null;
+
+    if (!pharmacy) {
+      return sendError(res, STATUS.NOT_FOUND, "Pharmacy not found");
+    }
+
+    return sendSuccess(res, STATUS.OK, "Pharmacy details fetched", {
+      pharmacy,
+    });
+  }),
+
+  /**
    * Get all pharmacies (for customers)
    */
   getAllPharmacies: asyncHandler(async (req, res) => {
     const { search, city, pincode } = req.query;
     const pharmacies = await pharmaciesModel.getAll(search, city, pincode);
+
+    console.log(pharmacies);
 
     return sendSuccess(res, STATUS.OK, "Pharmacies fetched successfully", {
       pharmacies,
