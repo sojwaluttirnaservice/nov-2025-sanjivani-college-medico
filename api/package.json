@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "dev": "nodemon ./bin/app.js",
+    "dev": "nodemon ./bin/www",
     "dbSync": "node ./bin/dbSync",
     "dbInitData": "node ./bin/insertPrefilledData",
     "clearUploads": "node ./bin/clearUploads"

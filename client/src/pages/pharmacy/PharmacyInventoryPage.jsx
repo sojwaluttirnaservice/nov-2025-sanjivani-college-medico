@@ -1,21 +1,54 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Container from '../../components/utils/Container'
 import { Plus, Search, Loader } from 'lucide-react'
-// import { useInventory } from '../../hooks/useInventory'
+import { useInventory } from '../../hooks/useInventory'
 
 const PharmacyInventoryPage = () => {
     // For now using default pharmacyId (1) or from context if available
-    // const { useInventoryQuery } = useInventory(1)
-    // const { data: inventory, isLoading, error } = useInventoryQuery()
+    const { useInventoryQuery, addStock, getBatches } = useInventory(1)
+    const { data: inventory, isLoading, error } = useInventoryQuery()
+    const { mutate: addStockMutate } = addStock;
 
-    // TEMPORARY: Mock Data
-    const isLoading = false;
-    const error = null;
-    const inventory = [
-        { id: 1, medicine_name: 'Paracetamol 500mg', quantity: 450, price: 25.00, expiry_date: '2025-12-31', dosage_form: 'Tablet' },
-        { id: 2, medicine_name: 'Amoxicillin 250mg', quantity: 20, price: 85.50, expiry_date: '2024-10-15', dosage_form: 'Capsule' },
-        { id: 3, medicine_name: 'Cetirizine 10mg', quantity: 100, price: 15.00, expiry_date: '2026-05-20', dosage_form: 'Tablet' },
-    ];
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [selectedMedicineId, setSelectedMedicineId] = useState(null);
+    const [batches, setBatches] = useState([]);
+    const [loadingBatches, setLoadingBatches] = useState(false);
+
+    // Fetch batches when selectedMedicineId changes
+    useEffect(() => {
+        if (selectedMedicineId) {
+            setLoadingBatches(true);
+            getBatches(selectedMedicineId)
+                .then(data => setBatches(data))
+                .catch(err => console.error("Failed to load batches", err))
+                .finally(() => setLoadingBatches(false));
+        } else {
+            setBatches([]);
+        }
+    }, [selectedMedicineId, getBatches]);
+
+    const [newStock, setNewStock] = useState({
+        medicineId: '',
+        batch_no: '',
+        quantity: '',
+        price: '',
+        expiryDate: ''
+    });
+
+    const handleAddStock = (e) => {
+        e.preventDefault();
+        addStockMutate({
+            ...newStock,
+            medicineId: parseInt(newStock.medicineId),
+            quantity: parseInt(newStock.quantity),
+            price: parseFloat(newStock.price)
+        }, {
+            onSuccess: () => {
+                setIsAddModalOpen(false);
+                setNewStock({ medicineId: '', batch_no: '', quantity: '', price: '', expiryDate: '' });
+            }
+        });
+    };
 
     const [searchTerm, setSearchTerm] = useState('')
 
@@ -39,12 +72,82 @@ const PharmacyInventoryPage = () => {
                                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
                             />
                         </div>
-                        <button className="flex items-center justify-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors">
+                        <button
+                            onClick={() => setIsAddModalOpen(true)}
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors">
                             <Plus className="w-4 h-4" />
                             Add New Stock
                         </button>
                     </div>
                 </div>
+
+                {/* Add Stock Modal - Simple inline implementation for MVP */}
+                {isAddModalOpen && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                            <h3 className="text-lg font-bold mb-4">Add New Stock Batch</h3>
+                            <form onSubmit={handleAddStock} className="space-y-4">
+                                <input
+                                    type="number"
+                                    placeholder="Medicine ID (Temporary)"
+                                    className="w-full border p-2 rounded"
+                                    value={newStock.medicineId}
+                                    onChange={e => setNewStock({ ...newStock, medicineId: e.target.value })}
+                                    required
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Batch Number"
+                                    className="w-full border p-2 rounded"
+                                    value={newStock.batch_no}
+                                    onChange={e => setNewStock({ ...newStock, batch_no: e.target.value })}
+                                    required
+                                />
+                                <div className="flex gap-2">
+                                    <input
+                                        type="number"
+                                        placeholder="Quantity"
+                                        className="w-full border p-2 rounded"
+                                        value={newStock.quantity}
+                                        onChange={e => setNewStock({ ...newStock, quantity: e.target.value })}
+                                        required
+                                    />
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="Price"
+                                        className="w-full border p-2 rounded"
+                                        value={newStock.price}
+                                        onChange={e => setNewStock({ ...newStock, price: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <input
+                                    type="date"
+                                    className="w-full border p-2 rounded"
+                                    value={newStock.expiryDate}
+                                    onChange={e => setNewStock({ ...newStock, expiryDate: e.target.value })}
+                                    required
+                                />
+                                <div className="flex justify-end gap-2 mt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAddModalOpen(false)}
+                                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+                                    >
+                                        Save Batch
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
 
                 <div className="overflow-x-auto min-h-[300px]">
                     {isLoading ? (
@@ -70,17 +173,43 @@ const PharmacyInventoryPage = () => {
                                 {filteredInventory.length > 0 ? (
                                     filteredInventory.map((item) => (
                                         <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="py-4 text-gray-900 font-medium">{item.medicine_name} <span className="text-xs text-gray-400 font-normal">({item.dosage_form})</span></td>
+                                            <td className="py-4 text-gray-900 font-medium">
+                                                {item.medicine_name} <span className="text-xs text-gray-400 font-normal">({item.dosage_form})</span>
+                                                {selectedMedicineId === item.medicine_id && (
+                                                    <div className="mt-2 pl-4 border-l-2 border-teal-100 text-sm text-gray-500">
+                                                        <p className="text-xs font-bold text-teal-600 mb-1">Active Batches:</p>
+                                                        {loadingBatches ? (
+                                                            <div className="text-xs">Loading batches...</div>
+                                                        ) : batches.length > 0 ? (
+                                                            <div className="space-y-1">
+                                                                {batches.map(batch => (
+                                                                    <div key={batch.id} className="flex justify-between bg-gray-50 p-2 rounded text-xs">
+                                                                        <span>{batch.batch_no}</span>
+                                                                        <span>Exp: {new Date(batch.expiry_date).toLocaleDateString()}</span>
+                                                                        <span className="font-medium">Qty: {batch.physical_quantity}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-xs text-gray-400">No active batches found.</div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </td>
                                             <td className="py-4">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.quantity < 30 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
                                                     }`}>
                                                     {item.quantity} units
                                                 </span>
                                             </td>
-                                            <td className="py-4 text-gray-600">₹{parseFloat(item.price).toFixed(2)}</td>
-                                            <td className="py-4 text-gray-600">{new Date(item.expiry_date).toLocaleDateString()}</td>
+                                            <td className="py-4 text-gray-600">₹{item.price ? parseFloat(item.price).toFixed(2) : '-'}</td>
+                                            <td className="py-4 text-gray-600">{item.nearest_expiry ? new Date(item.nearest_expiry).toLocaleDateString() : 'N/A'}</td>
                                             <td className="py-4 text-right">
-                                                <button className="text-teal-600 hover:text-teal-800 text-sm font-medium">Edit</button>
+                                                <button
+                                                    onClick={() => setSelectedMedicineId(selectedMedicineId === item.medicine_id ? null : item.medicine_id)}
+                                                    className="text-teal-600 hover:text-teal-800 text-sm font-medium">
+                                                    {selectedMedicineId === item.medicine_id ? 'Hide Batches' : 'View Batches'}
+                                                </button>
                                             </td>
                                         </tr>
                                     ))

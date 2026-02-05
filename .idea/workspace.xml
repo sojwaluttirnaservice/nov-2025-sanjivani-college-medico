@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="NONE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="1788b9d5-1335-4f9d-88a4-83d85497c3e6" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/controllers/v1/customersController.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/controllers/v1/customersController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/controllers/v1/pharmaciesController.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/controllers/v1/pharmaciesController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/api/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/routes/versionOne/v1Routes/customersRouter.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/routes/versionOne/v1Routes/customersRouter.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/(tabs)/index.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/(tabs)/index.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/(tabs)/orders.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/(tabs)/orders.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/(tabs)/profile.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/(tabs)/profile.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/(tabs)/search.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/(tabs)/search.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/_layout.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/_layout.jsx" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="39AOiIQAyhvuVcFkeWbNGvUndr3" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev-sojwal&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/sojwalgosavi/Desktop/clgPro/sanjivani/nov2025/nov-2025-sanjivani-medoplus&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;AndroidSdkUpdater&quot;
+  }
+}</component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="1788b9d5-1335-4f9d-88a4-83d85497c3e6" name="Changes" comment="" />
+      <created>1770135535315</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1770135535315</updated>
+    </task>
+    <servers />
+  </component>
+</project>

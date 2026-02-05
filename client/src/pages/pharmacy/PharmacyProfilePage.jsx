@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Container from "../../components/utils/Container";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { selectCurrentUser } from "../../redux/slices/authSlice";
+import {
+    selectPharmacyProfile,
+    setPharmacyProfile,
+} from "../../redux/slices/pharmacySlice";
 import { User, Mail, MapPin, Store, Phone, FileText } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -11,7 +15,9 @@ import { instance } from "../../utils/instance";
 import message from "../../utils/message";
 
 const PharmacyProfilePage = () => {
+    const dispatch = useDispatch();
     const user = useSelector(selectCurrentUser);
+    const pharmacyProfile = useSelector(selectPharmacyProfile);
     const queryClient = useQueryClient();
     const [isEditing, setIsEditing] = useState(false);
 
@@ -35,22 +41,25 @@ const PharmacyProfilePage = () => {
         queryKey: ["pharmacyProfile"],
         queryFn: async () => {
             const response = await instance.get("/users/me");
-            // response.data.user might be null or an object
-            return response.data?.user || null;
+            const profile = response.data?.user || null;
+            // Update Redux store with fetched profile
+            dispatch(setPharmacyProfile(profile));
+            return profile;
         },
     });
 
-    // Populate form when data is loaded
+    // Populate form when data is loaded from Redux or query
     useEffect(() => {
-        if (profileData) {
-            setValue("pharmacy_name", profileData.pharmacy_name || "");
-            setValue("license_no", profileData.license_no || "");
-            setValue("contact_no", profileData.contact_no || "");
-            setValue("address", profileData.address || "");
-            setValue("city", profileData.city || "");
-            setValue("pincode", profileData.pincode || "");
+        const profile = pharmacyProfile || profileData;
+        if (profile) {
+            setValue("pharmacy_name", profile.pharmacy_name || "");
+            setValue("license_no", profile.license_no || "");
+            setValue("contact_no", profile.contact_no || "");
+            setValue("address", profile.address || "");
+            setValue("city", profile.city || "");
+            setValue("pincode", profile.pincode || "");
         }
-    }, [profileData, setValue]);
+    }, [pharmacyProfile, profileData, setValue]);
 
     // Mutation to Upsert Profile
     const mutation = useMutation({
@@ -65,6 +74,7 @@ const PharmacyProfilePage = () => {
             // Use backend message from response
             message.success(response?.message || "Profile saved successfully!");
             setIsEditing(false);
+            // Invalidate query to refetch and update Redux
             queryClient.invalidateQueries(["pharmacyProfile"]);
         },
         onError: (error) => {
@@ -98,7 +108,9 @@ const PharmacyProfilePage = () => {
         );
     }
 
-    const hasProfile = !!profileData;
+    // Use Redux profile as primary source, fallback to query data
+    const currentProfile = pharmacyProfile || profileData;
+    const hasProfile = !!currentProfile;
 
     // Determine if we should show the form (Edit mode or No Profile) or View mode
     const showForm = isEditing || !hasProfile;
@@ -134,7 +146,7 @@ const PharmacyProfilePage = () => {
 
                     <div className="mb-8">
                         <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                            {hasProfile ? profileData.pharmacy_name : "Complete Your Profile"}
+                            {hasProfile ? currentProfile.pharmacy_name : "Complete Your Profile"}
                         </h1>
                         <p className="text-gray-500 flex items-center gap-2 text-sm">
                             <Mail className="w-4 h-4" /> {user?.email}
@@ -296,14 +308,15 @@ const PharmacyProfilePage = () => {
                                         type="button"
                                         onClick={() => {
                                             setIsEditing(false);
-                                            // Reset to original profile data, not empty values
+                                            // Reset to original profile data from Redux
+                                            const profile = pharmacyProfile || profileData;
                                             reset({
-                                                pharmacy_name: profileData?.pharmacy_name || "",
-                                                license_no: profileData?.license_no || "",
-                                                contact_no: profileData?.contact_no || "",
-                                                address: profileData?.address || "",
-                                                city: profileData?.city || "",
-                                                pincode: profileData?.pincode || "",
+                                                pharmacy_name: profile?.pharmacy_name || "",
+                                                license_no: profile?.license_no || "",
+                                                contact_no: profile?.contact_no || "",
+                                                address: profile?.address || "",
+                                                city: profile?.city || "",
+                                                pincode: profile?.pincode || "",
                                             });
                                         }}
                                         className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
@@ -337,7 +350,7 @@ const PharmacyProfilePage = () => {
                                     </label>
                                     <div className="font-medium text-gray-900 flex items-center gap-2">
                                         <FileText className="w-4 h-4 text-teal-600" />
-                                        {profileData.license_no}
+                                        {currentProfile.license_no}
                                     </div>
                                 </div>
 
@@ -347,7 +360,7 @@ const PharmacyProfilePage = () => {
                                     </label>
                                     <div className="font-medium text-gray-900 flex items-center gap-2">
                                         <Phone className="w-4 h-4 text-teal-600" />
-                                        {profileData.contact_no}
+                                        {currentProfile.contact_no}
                                     </div>
                                 </div>
 
@@ -358,8 +371,8 @@ const PharmacyProfilePage = () => {
                                     <div className="font-medium text-gray-900 flex items-start gap-2">
                                         <MapPin className="w-4 h-4 text-teal-600 mt-1 shrink-0" />
                                         <div>
-                                            {profileData.address}, {profileData.city} -{" "}
-                                            {profileData.pincode}
+                                            {currentProfile.address}, {currentProfile.city} -{" "}
+                                            {currentProfile.pincode}
                                         </div>
                                     </div>
                                 </div>

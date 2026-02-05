@@ -6,6 +6,6 @@ const customersRouter = getRouter();
 
 customersRouter.post("/", isCustomer, customersController.upsertCustomer);
 
-customersRouter.get("/profile/:id", isCustomer, customersController.getProfile);
+customersRouter.get("/profile", isCustomer, customersController.getProfile);
 
 module.exports = customersRouter;

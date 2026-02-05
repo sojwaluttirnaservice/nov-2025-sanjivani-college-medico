@@ -6,7 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useMutation } from '@tanstack/react-query'
 import { instance } from '../../utils/instance'
-import message from '../../utils/message'
+import { showSuccess } from '../../utils/error'
 import Container from '../../components/utils/Container'
 import { Mail, Lock, UserCircle, Eye, EyeOff, UserPlus, ArrowRight } from 'lucide-react'
 
@@ -54,7 +54,7 @@ const SignupPage = () => {
         },
         onSuccess: (response) => {
             if (response.success) {
-                message.success(response.message || 'Signup successful! Please login.')
+                showSuccess(response.message || 'Signup successful! Please login.')
 
                 // Redirect to login page after successful signup
                 setTimeout(() => {
@@ -64,7 +64,7 @@ const SignupPage = () => {
         },
         onError: (error) => {
             console.error('Signup error:', error)
-            // Error handling is managed by instance.js interceptor
+            // showError(error)
         }
     })
 
