@@ -15,7 +15,15 @@ prescriptionsRouter.post(
 
 prescriptionsRouter.get(
   "/analysis/:id",
+  require("../../../middlewares/auth").isAuthenticated,
   prescriptionsController.getPrescriptionWithAnalysis,
+);
+
+// [NEW] Get all pending requests for a pharmacy
+prescriptionsRouter.get(
+  "/requests",
+  require("../../../middlewares/auth").isAuthenticated,
+  prescriptionsController.getPharmacyRequests,
 );
 
 module.exports = prescriptionsRouter;

@@ -7,7 +7,7 @@ const config = require("../config/config");
  * @param {string} [expiresIn='1d'] - Token expiry
  * @returns {string}
  */
-const generateToken = (payload, expiresIn = "1d") => {
+const generateToken = (payload, expiresIn = "7d") => {
   const secretKey = config?.security?.jwtSecret;
 
   if (!secretKey) {
@@ -34,8 +34,7 @@ const generateToken = (payload, expiresIn = "1d") => {
 const extractToken = (req) => {
   if (!req || !req.headers) return null;
 
-  const authHeader =
-    req.headers.authorization || req.headers.Authorization;
+  const authHeader = req.headers.authorization || req.headers.Authorization;
 
   if (!authHeader || typeof authHeader !== "string") {
     return null;

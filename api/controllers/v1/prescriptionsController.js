@@ -76,9 +76,15 @@ const prescriptionsController = {
     }
 
     // 🔐 Ownership check
-    // if (prescription.customer_id !== customerId) {
-    //   return sendError(res, STATUS.FORBIDDEN, "Access denied");
-    // }
+    // 🔐 Ownership check
+    const isCustomerOwner =
+      req.user.customer_id && prescription.customer_id === req.user.customer_id;
+    const isPharmacyOwner =
+      req.user.pharmacy_id && prescription.pharmacy_id === req.user.pharmacy_id;
+
+    if (!isCustomerOwner && !isPharmacyOwner) {
+      return sendError(res, STATUS.FORBIDDEN, "Access denied");
+    }
 
     const [analysis] =
       await prescriptionAnalysisModel.getLatestByPrescriptionId(id);
@@ -86,6 +92,24 @@ const prescriptionsController = {
     return sendSuccess(res, STATUS.OK, "Prescription fetched", {
       prescription,
       analysis,
+    });
+  }),
+
+  /**
+   * Get all pending prescription requests for a specific pharmacy
+   */
+  getPharmacyRequests: asyncHandler(async (req, res) => {
+    // Determine pharmacy ID from user profile or query (prioritize token for security)
+    const pharmacyId = req.user?.pharmacy_id || req.query.pharmacyId;
+
+    if (!pharmacyId) {
+      return sendError(res, STATUS.BAD_REQUEST, "Pharmacy ID is required");
+    }
+
+    const requests = await prescriptionsModel.getPendingByPharmacy(pharmacyId);
+
+    return sendSuccess(res, STATUS.OK, "Pending requests fetched", {
+      requests,
     });
   }),
 };

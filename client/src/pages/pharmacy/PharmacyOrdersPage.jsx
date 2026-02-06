@@ -1,21 +1,16 @@
 import React from 'react'
 import Container from '../../components/utils/Container'
 import { Filter, Package, Loader } from 'lucide-react'
-// import { useOrders } from '../../hooks/useOrders'
+import { useSelector } from 'react-redux'
+import { selectCurrentUser } from '../../redux/slices/authSlice'
+import { useOrders } from '../../hooks/useOrders'
 
 const PharmacyOrdersPage = () => {
-    // Using default pharmacyId (1)
-    // const { useOrdersQuery } = useOrders(1)
-    // const { data: orders, isLoading, error } = useOrdersQuery()
-
-    // TEMPORARY: Mock Data
-    const isLoading = false;
-    const error = null;
-    const orders = [
-        { id: 101, customer_name: 'John Doe', total_amount: 125.00, order_status: 'processing', placed_at: '2024-01-15' },
-        { id: 102, customer_name: 'Jane Smith', total_amount: 450.00, order_status: 'ready', placed_at: '2024-01-14' },
-        { id: 103, customer_name: 'Bob Wilson', total_amount: 85.00, order_status: 'picked_up', placed_at: '2024-01-14' },
-    ];
+    const user = useSelector(selectCurrentUser)
+    const pharmacyId = user?.pharmacy_id
+    const { ordersQuery } = useOrders(pharmacyId)
+    const { data: ordersData, isLoading, error } = ordersQuery
+    const orders = ordersData?.orders || []
 
     return (
         <Container>

@@ -17,6 +17,7 @@ import PharmacyDashboardPage from './pages/pharmacy/PharmacyDashboardPage'
 import PharmacyInventoryPage from './pages/pharmacy/PharmacyInventoryPage'
 import PharmacyOrdersPage from './pages/pharmacy/PharmacyOrdersPage'
 import PharmacyProfilePage from './pages/pharmacy/PharmacyProfilePage'
+import PharmacyPrescriptionReviewPage from './pages/pharmacy/PharmacyPrescriptionReviewPage'
 
 import DeliveryDashboardPage from './pages/delivery/DeliveryDashboardPage'
 import DeliveryActivePage from './pages/delivery/DeliveryActivePage'
@@ -46,6 +47,7 @@ const App = () => {
                     <Route path='inventory' element={<PharmacyInventoryPage />} />
                     <Route path='orders' element={<PharmacyOrdersPage />} />
                     <Route path='profile' element={<PharmacyProfilePage />} />
+                    <Route path='prescriptions/:id' element={<PharmacyPrescriptionReviewPage />} />
                 </Route>
             </Route>
 

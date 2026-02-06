@@ -56,7 +56,23 @@ export const extractError = (error) => {
   }
 
   // Default fallback
-  return "An unexpected error occurred.";
+  const finalMessage = "An unexpected error occurred.";
+
+  // Ensure we return a string, not an object
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    !error.message &&
+    !axios.isAxiosError(error)
+  ) {
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return finalMessage;
+    }
+  }
+
+  return finalMessage;
 };
 
 /**

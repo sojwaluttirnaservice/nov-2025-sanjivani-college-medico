@@ -1,10 +1,10 @@
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, router, Stack } from 'expo-router';
+import { useLocalSearchParams, router, Stack, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import api from '../../services/api';
 
 export default function PharmacyDetailScreen() {
@@ -24,13 +24,20 @@ export default function PharmacyDetailScreen() {
     });
 
     // Fetch Customer Profile to get customer_id
-    const { data: profileData } = useQuery({
+    const { data: profileData, isLoading: isProfileLoading, refetch: refetchProfile } = useQuery({
         queryKey: ['customerProfile'],
         queryFn: async () => {
             const response = await api.get('/customers/profile');
             return response.data;
         }
     });
+
+    // Refetch profile when screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            refetchProfile();
+        }, [refetchProfile])
+    );
 
     const pharmacy = pharmacyData?.pharmacy;
 
@@ -65,6 +72,11 @@ export default function PharmacyDetailScreen() {
     const handleUpload = async () => {
         if (!image) {
             Alert.alert("Missing Prescription", "Please upload an image of your prescription.");
+            return;
+        }
+
+        if (isProfileLoading) {
+            Alert.alert("Checking Profile", "Please wait while we verify your profile details...");
             return;
         }
 

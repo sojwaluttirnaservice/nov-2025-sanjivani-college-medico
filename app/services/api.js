@@ -6,7 +6,8 @@ import { router } from "expo-router";
 // Replace with your computer's IP address if testing on a physical device
 // For Android Emulator, use 'http://10.0.2.2:2555'
 // For iOS Simulator, use 'http://localhost:2555'
-const API_URL = "http://10.141.179.220:2555/api/v1";
+// const API_URL = "http://10.141.179.220:2555/api/v1";
+const API_URL = "http://192.168.1.47:2555/api/v1";
 
 const api = axios.create({
   baseURL: API_URL,
