@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import Container from '../../components/utils/Container'
+import { useSelector } from 'react-redux'
 import { Plus, Search, Loader } from 'lucide-react'
 import { useInventory } from '../../hooks/useInventory'
 
 const PharmacyInventoryPage = () => {
     // For now using default pharmacyId (1) or from context if available
-    const { useInventoryQuery, addStock, getBatches } = useInventory(1)
-    const { data: inventory, isLoading, error } = useInventoryQuery()
+    const user = useSelector(state => state.auth.user)
+    const pharmacyId = user?.pharmacy_id
+    const { inventoryQuery, addStock, getBatches } = useInventory(pharmacyId)
+    const { data: inventory, isLoading, error } = inventoryQuery
     const { mutate: addStockMutate } = addStock;
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);

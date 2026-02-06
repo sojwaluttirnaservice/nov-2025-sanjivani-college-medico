@@ -6,14 +6,18 @@ import { showError, showSuccess } from "../utils/error";
 export const useInventory = (pharmacyId) => {
   const queryClient = useQueryClient();
 
-  const fetchInventory = async () => {
-    const { data } = await instance.get(
-      `/inventory?pharmacyId=${pharmacyId || 1}`,
-    );
-    return data;
-  };
+  const inventoryQuery = useQuery({
+    queryKey: ["inventory", pharmacyId],
+    queryFn: async () => {
+      const { data } = await instance.get(
+        `/inventory?pharmacyId=${pharmacyId}`,
+      );
+      return data;
+    },
+    enabled: !!pharmacyId,
+  });
 
-  const addStockMutation = useMutation({
+  const addStock = useMutation({
     mutationFn: async (stockData) => {
       const { data } = await instance.post("/inventory", {
         ...stockData,
@@ -34,7 +38,7 @@ export const useInventory = (pharmacyId) => {
   const getBatches = useCallback(
     async (medicineId) => {
       const { data } = await instance.get(
-        `/inventory/batches?medicineId=${medicineId}&pharmacyId=${pharmacyId || 1}`,
+        `/inventory/batches?medicineId=${medicineId}&pharmacyId=${pharmacyId}`,
       );
       return data;
     },
@@ -43,18 +47,14 @@ export const useInventory = (pharmacyId) => {
 
   const checkAvailability = async (medicineId, quantity) => {
     const { data } = await instance.get(
-      `/inventory/availability?medicineId=${medicineId}&quantity=${quantity}&pharmacyId=${pharmacyId || 1}`,
+      `/inventory/availability?medicineId=${medicineId}&quantity=${quantity}&pharmacyId=${pharmacyId}`,
     );
     return data;
   };
 
   return {
-    useInventoryQuery: () =>
-      useQuery({
-        queryKey: ["inventory", pharmacyId],
-        queryFn: fetchInventory,
-      }),
-    addStock: addStockMutation,
+    inventoryQuery,
+    addStock,
     checkAvailability,
     getBatches,
   };

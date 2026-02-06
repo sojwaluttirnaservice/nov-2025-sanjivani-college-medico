@@ -115,7 +115,7 @@ const GEMINI_CONFIG = {
  */
 if (!process.env.GEMINI_API_KEY) {
   throw new Error(
-    "GEMINI_API_KEY is not set in environment variables. Please check your .env file."
+    "GEMINI_API_KEY is not set in environment variables. Please check your .env file.",
   );
 }
 
@@ -164,8 +164,8 @@ function validateFilePath(filePath) {
   if (!ALLOWED_IMAGE_EXTENSIONS.includes(fileExtension)) {
     throw new Error(
       `Invalid file type '${fileExtension}'. Allowed types: ${ALLOWED_IMAGE_EXTENSIONS.join(
-        ", "
-      )}`
+        ", ",
+      )}`,
     );
   }
 
@@ -183,8 +183,8 @@ function validateFileSize(buffer) {
   if (buffer.length > MAX_FILE_SIZE) {
     throw new Error(
       `File size (${(buffer.length / 1024 / 1024).toFixed(
-        2
-      )}MB) exceeds maximum allowed size (${MAX_FILE_SIZE / 1024 / 1024}MB)`
+        2,
+      )}MB) exceeds maximum allowed size (${MAX_FILE_SIZE / 1024 / 1024}MB)`,
     );
   }
   return true;
@@ -358,7 +358,7 @@ async function analyzePrescription(input) {
 
       if (!isValidFileObject(input)) {
         throw new Error(
-          "Invalid file object: missing required properties (path/buffer and mimetype)"
+          "Invalid file object: missing required properties (path/buffer and mimetype)",
         );
       }
 
@@ -391,7 +391,7 @@ async function analyzePrescription(input) {
       mimeType = MIME_TYPE_MAP[fileExtension] || "image/jpeg";
     } else {
       throw new Error(
-        "Invalid input type: must be either a file path (string) or file object"
+        "Invalid input type: must be either a file path (string) or file object",
       );
     }
 
@@ -462,7 +462,7 @@ async function analyzePrescription(input) {
     // Initialize medicines array if missing
     if (!Array.isArray(prescriptionData.medicines)) {
       console.warn(
-        "⚠️  No medicines array in response, initializing empty array"
+        "⚠️  No medicines array in response, initializing empty array",
       );
       prescriptionData.medicines = [];
     }
@@ -526,12 +526,12 @@ async function analyzePrescription(input) {
     if (totalMedicines > 0) {
       const totalConfidence = prescriptionData.medicines.reduce(
         (sum, med) => sum + med.confidence,
-        0
+        0,
       );
       averageConfidence = Math.round(totalConfidence / totalMedicines);
 
       lowConfidenceCount = prescriptionData.medicines.filter(
-        (med) => med.confidence < CONFIDENCE_THRESHOLDS.MEDIUM
+        (med) => med.confidence < CONFIDENCE_THRESHOLDS.MEDIUM,
       ).length;
     }
 
@@ -544,12 +544,12 @@ async function analyzePrescription(input) {
     // ========================================================================
 
     console.log(
-      `✅ Analysis complete: ${totalMedicines} medicine(s) extracted`
+      `✅ Analysis complete: ${totalMedicines} medicine(s) extracted`,
     );
     console.log(`📊 Average confidence: ${averageConfidence}%`);
     if (needsManualReview) {
       console.log(
-        `⚠️  Manual review recommended (${lowConfidenceCount} low-confidence items)`
+        `⚠️  Manual review recommended (${lowConfidenceCount} low-confidence items)`,
       );
     }
 
@@ -565,6 +565,8 @@ async function analyzePrescription(input) {
       needs_manual_review: needsManualReview,
       analyzed_at: new Date().toISOString(),
       processing_time_ms: apiDuration,
+      raw_text: rawText,
+      model: GEMINI_CONFIG.model,
     };
   } catch (error) {
     console.error("❌ Prescription analysis failed:", error.message);
@@ -579,7 +581,7 @@ async function analyzePrescription(input) {
       error.message?.includes("API_KEY")
     ) {
       throw new Error(
-        "Authentication failed: Invalid Gemini API key. Please verify GEMINI_API_KEY in your .env file"
+        "Authentication failed: Invalid Gemini API key. Please verify GEMINI_API_KEY in your .env file",
       );
     }
 
@@ -590,14 +592,14 @@ async function analyzePrescription(input) {
       error.message?.includes("429")
     ) {
       throw new Error(
-        "Rate limit exceeded: Too many requests to Gemini API. Please try again in a few minutes"
+        "Rate limit exceeded: Too many requests to Gemini API. Please try again in a few minutes",
       );
     }
 
     // Network errors
     if (error.code === "ENOTFOUND" || error.code === "ECONNREFUSED") {
       throw new Error(
-        "Network error: Unable to connect to Gemini API. Please check your internet connection"
+        "Network error: Unable to connect to Gemini API. Please check your internet connection",
       );
     }
 
@@ -648,7 +650,7 @@ async function analyzePrescription(input) {
       };
     }
 
-    if (error?.includes("503 Service Unavailable")) {
+    if (error.message?.includes("503 Service Unavailable")) {
       throw new Error(`The service is having a load, try again.`);
     }
 
@@ -676,7 +678,7 @@ async function testGeminiConnection() {
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(
-      "Respond with exactly 'OK' if you receive this message."
+      "Respond with exactly 'OK' if you receive this message.",
     );
 
     const response = await result.response;
@@ -684,7 +686,7 @@ async function testGeminiConnection() {
 
     const isWorking = text && text.length > 0;
     console.log(
-      isWorking ? "✅ API connection successful" : "❌ API connection failed"
+      isWorking ? "✅ API connection successful" : "❌ API connection failed",
     );
 
     return isWorking;

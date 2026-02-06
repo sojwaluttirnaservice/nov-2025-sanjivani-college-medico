@@ -19,7 +19,16 @@ const prescriptionsModel = {
   },
 
   getById: (id) => {
-    return query(`SELECT * FROM prescriptions WHERE id = ? LIMIT 1`, [id]);
+    return query(
+      `
+      SELECT p.*, c.full_name as customer_name, c.phone as customer_phone
+      FROM prescriptions p
+      JOIN customers c ON p.customer_id = c.id
+      WHERE p.id = ?
+      LIMIT 1
+      `,
+      [id],
+    );
   },
 
   getByCustomer: (customerId) => {
@@ -47,6 +56,24 @@ const prescriptionsModel = {
       `,
       [verifiedBy, prescriptionId],
     );
+  },
+
+  /**
+   * Get prescriptions for a pharmacy that haven't been converted to orders yet
+   */
+  getPendingByPharmacy: (pharmacyId) => {
+    const q = `
+      SELECT 
+        p.*, 
+        c.full_name as customer_name,
+        c.phone as customer_phone
+      FROM prescriptions p
+      JOIN customers c ON p.customer_id = c.id
+      LEFT JOIN orders o ON p.id = o.prescription_id
+      WHERE p.pharmacy_id = ? AND o.id IS NULL
+      ORDER BY p.id DESC
+    `;
+    return query(q, [pharmacyId]);
   },
 };
 

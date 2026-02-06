@@ -76,10 +76,20 @@ const usersController = {
       return sendError(res, STATUS.NOT_FOUND, "Invalid Credentials");
     }
 
+    let extraId = {};
+    if (existingUser.role === APP_ROLES.CUSTOMER) {
+      const [customer] = await customersModel.checkByUserId(existingUser.id);
+      if (customer) extraId.customer_id = customer.customer_id;
+    } else if (existingUser.role === APP_ROLES.PHARMACY) {
+      const [pharmacy] = await pharmaciesModel.checkByUserId(existingUser.id);
+      if (pharmacy) extraId.pharmacy_id = pharmacy.pharmacy_id;
+    }
+
     const user = {
       id: existingUser.id,
       email: existingUser.email,
       role: existingUser.role,
+      ...extraId,
     };
 
     const token = generateToken(user);
