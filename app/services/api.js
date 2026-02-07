@@ -2,8 +2,10 @@ import { HttpClient } from "@/utils/instance";
 import toast from "@/utils/toast";
 import * as SecureStore from "expo-secure-store";
 
+const IP_ADDRESS = "10.126.255.131";
+
 // API Configuration
-const API_URL = "http://10.126.255.131:2555/api/v1";
+const API_URL = `http://${IP_ADDRESS}:2555/api/v1`;
 
 const api = new HttpClient({
   baseURL: API_URL,
