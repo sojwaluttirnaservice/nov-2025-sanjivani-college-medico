@@ -1,5 +1,5 @@
-const mysql = require('mysql2');
-const config = require('./config');
+const mysql = require("mysql2");
+const config = require("./config");
 // console.log(config)
 const pool = mysql.createPool({
   ...config.db, // Spread operator to use all properties from config.db,
@@ -8,11 +8,9 @@ const pool = mysql.createPool({
 
   queueLimit: 0,
 
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 0,
-
+  enableKeepAlive: false,
 });
 
 const db = pool.promise();
 
-module.exports = db
+module.exports = db;
