@@ -17,6 +17,19 @@ const ordersController = {
     });
   }),
 
+  // [NEW] Get all orders for logged-in customer
+  getMyOrders: asyncHandler(async (req, res) => {
+    const customerId = req.user?.customer_id;
+    if (!customerId) {
+      return sendError(res, STATUS.UNAUTHORIZED, "User is not a customer");
+    }
+
+    const orders = await ordersModel.getOrdersByCustomerId(customerId);
+    return sendSuccess(res, STATUS.OK, "My orders fetched successfully", {
+      orders,
+    });
+  }),
+
   // Get details of a specific order including items
   getOrderDetails: asyncHandler(async (req, res) => {
     const { id } = req.params;
@@ -88,6 +101,13 @@ const ordersController = {
       "Order marked as delivered and payment collected",
       result,
     );
+  }),
+
+  // [NEW] Reject/Cancel Order (Restocks inventory)
+  rejectOrder: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const result = await orderService.rejectOrder(id);
+    return sendSuccess(res, STATUS.OK, "Order rejected successfully", result);
   }),
 
   // [NEW] Get pharmacy stats for dashboard

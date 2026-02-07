@@ -11,6 +11,11 @@ inventoryRouter.get(
   inventoryController.getMedicineBatches,
 );
 inventoryRouter.post("/sell", isAuthenticated, inventoryController.sellItem);
+inventoryRouter.get(
+  "/alerts/low-stock",
+  isAuthenticated,
+  inventoryController.getLowStockAlerts,
+);
 inventoryRouter.post("/", isAuthenticated, inventoryController.addStock);
 
 module.exports = inventoryRouter;

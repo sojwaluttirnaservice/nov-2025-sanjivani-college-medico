@@ -1,19 +1,12 @@
 import React from 'react'
 import Container from '../../components/utils/Container'
 import { CheckCircle, Phone, MapPin, Navigation, Loader } from 'lucide-react'
-// import { useDelivery } from '../../hooks/useDelivery'
+import { useDelivery } from '../../hooks/useDelivery'
+import { CheckCircle2 } from 'lucide-react'
 
 const DeliveryActivePage = () => {
-    // const { useActiveDeliveriesQuery } = useDelivery()
-    // const { data: deliveries, isLoading, error } = useActiveDeliveriesQuery()
-
-    // TEMPORARY: Mock Data
-    const isLoading = false;
-    const error = null;
-    const deliveries = [
-        { id: 101, customer_name: 'John Doe', customer_phone: '9876543210', delivery_address: 'Plot 4, Main Road, Kopargaon', order_status: 'assigned' },
-        { id: 102, customer_name: 'Alice Brown', customer_phone: '9876500000', delivery_address: 'Flat 202, Sunshine Apts, Shirdi', order_status: 'picked_up' },
-    ];
+    const { activeDeliveriesQuery, markDelivered } = useDelivery()
+    const { data: deliveries, isLoading, error } = activeDeliveriesQuery
 
     return (
         <Container>
@@ -58,13 +51,18 @@ const DeliveryActivePage = () => {
                                     </div>
 
                                     <div className="flex gap-3">
-                                        <button className="flex-1 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+                                        <button
+                                            onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(delivery.delivery_address)}`, '_blank')}
+                                            className="flex-1 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                        >
                                             <Navigation className="w-4 h-4" />
                                             Navigate
                                         </button>
-                                        <button className="flex-1 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors">
-                                            Mark Delivered
-                                        </button>
+                                        <ConfirmButton
+                                            onConfirm={() => markDelivered.mutate(delivery.id)}
+                                            isLoading={markDelivered.isPending}
+                                            label="Mark Delivered"
+                                        />
                                     </div>
                                 </div>
                             ))
@@ -85,3 +83,36 @@ const DeliveryActivePage = () => {
 }
 
 export default DeliveryActivePage
+
+import { useState, useEffect } from 'react'
+
+const ConfirmButton = ({ onConfirm, isLoading, label }) => {
+    const [confirming, setConfirming] = useState(false);
+
+    useEffect(() => {
+        if (confirming) {
+            const timer = setTimeout(() => setConfirming(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [confirming]);
+
+    return (
+        <button
+            onClick={() => {
+                if (confirming) {
+                    onConfirm();
+                    setConfirming(false);
+                } else {
+                    setConfirming(true);
+                }
+            }}
+            disabled={isLoading}
+            className={`flex-1 py-2.5 border font-medium rounded-lg transition-colors disabled:opacity-50 ${confirming
+                    ? 'bg-red-50 border-red-200 text-red-600 animate-pulse'
+                    : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                }`}
+        >
+            {isLoading ? 'Updating...' : confirming ? 'Click to Confirm' : label}
+        </button>
+    );
+};

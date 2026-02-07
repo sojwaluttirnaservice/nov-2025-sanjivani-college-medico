@@ -45,6 +45,22 @@ export const useInventory = (pharmacyId) => {
     [pharmacyId],
   );
 
+  const lowStockQuery = useQuery({
+    queryKey: ["low-stock", pharmacyId],
+    queryFn: async () => {
+      const { data } = await instance.get(
+        `/inventory/alerts/low-stock?pharmacyId=${pharmacyId}`,
+      );
+      return data;
+    },
+    enabled: !!pharmacyId,
+  });
+
+  const searchMedicines = useCallback(async (query) => {
+    const { data } = await instance.get(`/medicines/search?q=${query}`);
+    return data;
+  }, []);
+
   const checkAvailability = async (medicineId, quantity) => {
     const { data } = await instance.get(
       `/inventory/availability?medicineId=${medicineId}&quantity=${quantity}&pharmacyId=${pharmacyId}`,
@@ -54,8 +70,10 @@ export const useInventory = (pharmacyId) => {
 
   return {
     inventoryQuery,
+    lowStockQuery,
     addStock,
     checkAvailability,
     getBatches,
+    searchMedicines,
   };
 };

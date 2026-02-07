@@ -8,7 +8,7 @@ const PharmacyInventoryPage = () => {
     // For now using default pharmacyId (1) or from context if available
     const user = useSelector(state => state.auth.user)
     const pharmacyId = user?.pharmacy_id
-    const { inventoryQuery, addStock, getBatches } = useInventory(pharmacyId)
+    const { inventoryQuery, addStock, getBatches, searchMedicines } = useInventory(pharmacyId)
     const { data: inventory, isLoading, error } = inventoryQuery
     const { mutate: addStockMutate } = addStock;
 
@@ -30,28 +30,7 @@ const PharmacyInventoryPage = () => {
         }
     }, [selectedMedicineId, getBatches]);
 
-    const [newStock, setNewStock] = useState({
-        medicineId: '',
-        batch_no: '',
-        quantity: '',
-        price: '',
-        expiryDate: ''
-    });
 
-    const handleAddStock = (e) => {
-        e.preventDefault();
-        addStockMutate({
-            ...newStock,
-            medicineId: parseInt(newStock.medicineId),
-            quantity: parseInt(newStock.quantity),
-            price: parseFloat(newStock.price)
-        }, {
-            onSuccess: () => {
-                setIsAddModalOpen(false);
-                setNewStock({ medicineId: '', batch_no: '', quantity: '', price: '', expiryDate: '' });
-            }
-        });
-    };
 
     const [searchTerm, setSearchTerm] = useState('')
 
@@ -84,70 +63,28 @@ const PharmacyInventoryPage = () => {
                     </div>
                 </div>
 
-                {/* Add Stock Modal - Simple inline implementation for MVP */}
+                {/* Add Stock Modal - Refactored with React Hook Form & Yup */}
                 {isAddModalOpen && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                         <div className="bg-white p-6 rounded-lg w-full max-w-md">
                             <h3 className="text-lg font-bold mb-4">Add New Stock Batch</h3>
-                            <form onSubmit={handleAddStock} className="space-y-4">
-                                <input
-                                    type="number"
-                                    placeholder="Medicine ID (Temporary)"
-                                    className="w-full border p-2 rounded"
-                                    value={newStock.medicineId}
-                                    onChange={e => setNewStock({ ...newStock, medicineId: e.target.value })}
-                                    required
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Batch Number"
-                                    className="w-full border p-2 rounded"
-                                    value={newStock.batch_no}
-                                    onChange={e => setNewStock({ ...newStock, batch_no: e.target.value })}
-                                    required
-                                />
-                                <div className="flex gap-2">
-                                    <input
-                                        type="number"
-                                        placeholder="Quantity"
-                                        className="w-full border p-2 rounded"
-                                        value={newStock.quantity}
-                                        onChange={e => setNewStock({ ...newStock, quantity: e.target.value })}
-                                        required
-                                    />
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="Price"
-                                        className="w-full border p-2 rounded"
-                                        value={newStock.price}
-                                        onChange={e => setNewStock({ ...newStock, price: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                                <input
-                                    type="date"
-                                    className="w-full border p-2 rounded"
-                                    value={newStock.expiryDate}
-                                    onChange={e => setNewStock({ ...newStock, expiryDate: e.target.value })}
-                                    required
-                                />
-                                <div className="flex justify-end gap-2 mt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsAddModalOpen(false)}
-                                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
-                                    >
-                                        Save Batch
-                                    </button>
-                                </div>
-                            </form>
+                            <AddStockForm
+                                onSubmit={(data) => {
+                                    addStockMutate({
+                                        ...data,
+                                        medicineId: parseInt(data.medicineId),
+                                        quantity: parseInt(data.quantity),
+                                        price: parseFloat(data.price),
+                                        batch_no: "BATCH-" + Date.now().toString().slice(-6)
+                                    }, {
+                                        onSuccess: () => {
+                                            setIsAddModalOpen(false);
+                                        }
+                                    });
+                                }}
+                                onCancel={() => setIsAddModalOpen(false)}
+                                searchMedicines={searchMedicines}
+                            />
                         </div>
                     </div>
                 )}
@@ -231,5 +168,151 @@ const PharmacyInventoryPage = () => {
         </Container>
     )
 }
+
+
+// Sub-component for Form Logic
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+
+const schema = yup.object().shape({
+    medicineId: yup.string().required('Please select a medicine'),
+    quantity: yup.number().typeError('Quantity must be a number').positive('Must be positive').integer('Must be an integer').required('Quantity is required'),
+    price: yup.number().typeError('Price must be a number').positive('Must be positive').required('Price is required'),
+    expiryDate: yup.date().typeError('Invalid date').required('Expiry date is required').min(new Date(), 'Expiry date must be in the future')
+});
+
+const AddStockForm = ({ onSubmit, onCancel, searchMedicines }) => {
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm({
+        resolver: yupResolver(schema)
+    });
+
+    // Custom Logic for Medicine Search (kept from previous implementation but integrated)
+    const [medicineSearchTerm, setMedicineSearchTerm] = useState('');
+    const [medicineResults, setMedicineResults] = useState([]);
+    const [showResults, setShowResults] = useState(false);
+    const [selectedMedicineName, setSelectedMedicineName] = useState('');
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(async () => {
+            if (medicineSearchTerm.length >= 2) {
+                try {
+                    const results = await searchMedicines(medicineSearchTerm);
+                    setMedicineResults(results.data || []);
+                    setShowResults(true);
+                } catch (error) {
+                    console.error("Search failed", error);
+                }
+            } else {
+                setMedicineResults([]);
+                setShowResults(false);
+            }
+        }, 300);
+        return () => clearTimeout(delayDebounceFn);
+    }, [medicineSearchTerm, searchMedicines]);
+
+    const selectMedicine = (medicine) => {
+        setValue('medicineId', medicine.id.toString(), { shouldValidate: true });
+        setSelectedMedicineName(`${medicine.name} (${medicine.dosage_form})`);
+        setMedicineSearchTerm('');
+        setShowResults(false);
+    };
+
+    return (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="relative">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Select Medicine</label>
+                {selectedMedicineName ? (
+                    <div className="flex items-center justify-between p-2 border border-teal-200 bg-teal-50 rounded">
+                        <span className="text-sm font-medium text-teal-800">{selectedMedicineName}</span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setValue('medicineId', '');
+                                setSelectedMedicineName('');
+                            }}
+                            className="text-xs text-red-500 font-bold"
+                        >
+                            Change
+                        </button>
+                    </div>
+                ) : (
+                    <>
+                        <input
+                            type="text"
+                            placeholder="Search medicine (e.g., Para...)"
+                            className="w-full border p-2 rounded"
+                            value={medicineSearchTerm}
+                            onChange={e => setMedicineSearchTerm(e.target.value)}
+                        />
+                        {showResults && medicineResults.length > 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-40 overflow-y-auto">
+                                {medicineResults.map(med => (
+                                    <div
+                                        key={med.id}
+                                        onClick={() => selectMedicine(med)}
+                                        className="p-2 hover:bg-teal-50 cursor-pointer border-b border-gray-50 last:border-0"
+                                    >
+                                        <p className="text-sm font-medium text-gray-900">{med.name} <span className="text-xs text-gray-500">({med.brand})</span></p>
+                                        <p className="text-xs text-gray-500">{med.dosage_form} • {med.strength}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
+                )}
+                <input type="hidden" {...register('medicineId')} />
+                {errors.medicineId && <p className="text-xs text-red-500 mt-1">{errors.medicineId.message}</p>}
+            </div>
+
+            <div className="flex gap-2">
+                <div className="w-1/2">
+                    <input
+                        type="number"
+                        placeholder="Quantity"
+                        className={`w-full border p-2 rounded ${errors.quantity ? 'border-red-500' : ''}`}
+                        {...register('quantity')}
+                    />
+                    {errors.quantity && <p className="text-xs text-red-500 mt-1">{errors.quantity.message}</p>}
+                </div>
+                <div className="w-1/2">
+                    <input
+                        type="number"
+                        step="0.01"
+                        placeholder="Price"
+                        className={`w-full border p-2 rounded ${errors.price ? 'border-red-500' : ''}`}
+                        {...register('price')}
+                    />
+                    {errors.price && <p className="text-xs text-red-500 mt-1">{errors.price.message}</p>}
+                </div>
+            </div>
+
+            <div>
+                <input
+                    type="date"
+                    className={`w-full border p-2 rounded ${errors.expiryDate ? 'border-red-500' : ''}`}
+                    {...register('expiryDate')}
+                />
+                {errors.expiryDate && <p className="text-xs text-red-500 mt-1">{errors.expiryDate.message}</p>}
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4">
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+                >
+                    Save Stock
+                </button>
+            </div>
+        </form>
+    );
+};
 
 export default PharmacyInventoryPage

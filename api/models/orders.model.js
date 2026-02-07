@@ -20,6 +20,24 @@ const ordersModel = {
     return query(sql, [pharmacyId]);
   },
 
+  // Get all orders for a customer (My Orders)
+  getOrdersByCustomerId: (customerId) => {
+    const sql = `
+      SELECT 
+        o.id, 
+        o.total_amount, 
+        o.payment_status, 
+        o.order_status, 
+        o.placed_at,
+        p.pharmacy_name
+      FROM orders o
+      JOIN pharmacies p ON o.pharmacy_id = p.id
+      WHERE o.customer_id = ?
+      ORDER BY o.placed_at DESC
+    `;
+    return query(sql, [customerId]);
+  },
+
   // Get details of a specific order including items
   getOrderDetails: async (orderId) => {
     const orderSql = `
@@ -63,33 +81,27 @@ const ordersModel = {
   },
 
   // Create new order
-  create: async (data) => {
+  create: (data) => {
     const q = `
         INSERT INTO orders (
             customer_id, pharmacy_id, prescription_id, total_amount, 
-            payment_mode, payment_status, order_status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            payment_status, order_status
+        ) VALUES (?, ?, ?, ?, ?, ?)
     `;
-    return await query(q, [
+    return query(q, [
       data.customer_id,
       data.pharmacy_id,
       data.prescription_id || null,
       data.total_amount,
-      data.payment_mode || "CASH",
       "PENDING",
       "CONFIRMED",
     ]);
   },
 
   // Add item to order
-  addOrderItem: async (data) => {
-    const q = `INSERT INTO order_items (order_id, medicine_id, quantity, price) VALUES (?, ?, ?, ?)`;
-    return await query(q, [
-      data.order_id,
-      data.medicine_id,
-      data.quantity,
-      data.price,
-    ]);
+  addOrderItem: (data) => {
+    const q = `INSERT INTO order_items (order_id, medicine_id, quantity) VALUES (?, ?, ?)`;
+    return query(q, [data.order_id, data.medicine_id, data.quantity]);
   },
 
   // Get pharmacy stats (Revenue, Active Orders)

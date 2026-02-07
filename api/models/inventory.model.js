@@ -40,8 +40,8 @@ const inventoryModel = {
   addStock: (data) => {
     const sql = `
       INSERT INTO pharmacy_inventory 
-      (pharmacy_id, medicine_id, quantity, price, expiry_date) 
-      VALUES (?, ?, ?, ?, ?)
+      (pharmacy_id, medicine_id, quantity, price, expiry_date, batch_no) 
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
     return query(sql, [
       data.pharmacyId,
@@ -49,6 +49,7 @@ const inventoryModel = {
       data.quantity,
       data.price,
       data.expiryDate,
+      data.batch_no,
     ]);
   },
 

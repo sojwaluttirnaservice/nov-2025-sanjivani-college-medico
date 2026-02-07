@@ -61,6 +61,20 @@ const inventoryController = {
       res.status(400).json({ message: error.message });
     }
   },
+
+  getLowStockAlerts: async (req, res) => {
+    try {
+      const pharmacyId = req.query.pharmacyId || 1;
+      const threshold = req.query.threshold || 30; // Default threshold
+
+      const alerts = await inventoryModel.getLowStock(pharmacyId, threshold);
+      res.status(200).json(alerts);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error fetching alerts", error: error.message });
+    }
+  },
 };
 
 module.exports = inventoryController;

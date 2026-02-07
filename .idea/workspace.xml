@@ -5,27 +5,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1788b9d5-1335-4f9d-88a4-83d85497c3e6" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/deviceManager.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deviceManager.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/config/config.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/config/config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/controllers/v1/inventoryController.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/controllers/v1/inventoryController.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/controllers/v1/ordersController.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/controllers/v1/ordersController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/controllers/v1/prescriptionsController.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/controllers/v1/prescriptionsController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/controllers/v1/usersController.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/controllers/v1/usersController.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/models/inventory.model.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/models/inventory.model.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/models/orders.model.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/models/orders.model.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/models/prescriptions.model.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/models/prescriptions.model.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/routes/versionOne/v1Router.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/routes/versionOne/v1Router.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/routes/versionOne/v1Routes/inventoryRouter.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/routes/versionOne/v1Routes/inventoryRouter.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/routes/versionOne/v1Routes/ordersRouter.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/routes/versionOne/v1Routes/ordersRouter.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/routes/versionOne/v1Routes/prescriptionsRouter.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/routes/versionOne/v1Routes/prescriptionsRouter.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/App.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/config/clientConfig.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/config/clientConfig.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/services/inventoryService.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/services/inventoryService.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/services/orderService.js" beforeDir="false" afterPath="$PROJECT_DIR$/api/services/orderService.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/(tabs)/orders.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/(tabs)/orders.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/services/api.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/services/api.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/hooks/useDelivery.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/hooks/useDelivery.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/hooks/useInventory.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/hooks/useInventory.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/hooks/useOrders.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/hooks/useOrders.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/layouts/PharmacyLayout.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/layouts/PharmacyLayout.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/delivery/DeliveryActivePage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/delivery/DeliveryActivePage.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/pharmacy/PharmacyDashboardPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/pharmacy/PharmacyDashboardPage.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/pharmacy/PharmacyInventoryPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/pharmacy/PharmacyInventoryPage.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/pharmacy/PharmacyOrdersPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/pharmacy/PharmacyOrdersPage.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/redux/slices/authSlice.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/redux/slices/authSlice.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/utils/error.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/utils/error.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
