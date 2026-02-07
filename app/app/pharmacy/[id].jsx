@@ -5,7 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { useState, useCallback } from 'react';
-import api from '../../services/api';
+import api, { API_URL } from '../../services/api';
+import * as SecureStore from 'expo-secure-store';
 
 export default function PharmacyDetailScreen() {
     const { id } = useLocalSearchParams();
@@ -58,7 +59,7 @@ export default function PharmacyDetailScreen() {
         }
 
         let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [4, 5],
             quality: 0.8,
@@ -98,27 +99,38 @@ export default function PharmacyDetailScreen() {
             const fileType = uriParts[uriParts.length - 1];
 
             formData.append('prescription', {
-                uri: image,
+                uri: Platform.OS === 'ios' ? image.replace('file://', '') : image,
                 name: `prescription.${fileType}`,
                 type: `image/${fileType === 'jpg' ? 'jpeg' : fileType}`,
             });
 
             formData.append('customer_id', String(customerId));
             formData.append('pharmacy_id', String(id));
-            if (notes) formData.append('notes', notes);
+            if (notes) formData.append('notes', String(notes)); // Ensure string
 
-            // Using axios directly or api instance with specific headers
-            // Ensure content-type is multipart/form-data
-            // Using axios directly or api instance with specific headers
-            // Ensure content-type is multipart/form-data
-            const response = await api.post('/prescriptions/upload', formData);
+            console.log('FormData payload:', JSON.stringify(formData));
 
-            if (response.success || response?.data?.prescription_id) { // success check based on API structure
+            // Use fetch instead of axios for reliable file uploads
+            const token = await SecureStore.getItemAsync("token");
+
+            const response = await fetch(`${API_URL}/prescriptions/upload`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    // Do NOT set Content-Type, let fetch generate it with boundary
+                },
+            });
+
+            const responseData = await response.json();
+            console.log('Upload response:', responseData);
+
+            if (response.ok && (responseData.success || responseData?.data?.prescription_id)) {
                 Alert.alert("Success", "Prescription uploaded successfully!", [
                     { text: "OK", onPress: () => router.push('/(tabs)/orders') }
                 ]);
             } else {
-                throw new Error(response.message || "Upload failed");
+                throw new Error(responseData.message || "Upload failed");
             }
 
         } catch (error) {

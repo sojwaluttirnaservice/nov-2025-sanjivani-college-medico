@@ -1,12 +1,11 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-const apiRouter = require('./routes/apiRouter');
-const cors = require('cors');
-const config = require('./config/config');
-
+var createError = require("http-errors");
+var express = require("express");
+var path = require("path");
+var cookieParser = require("cookie-parser");
+var logger = require("morgan");
+const apiRouter = require("./routes/apiRouter");
+const cors = require("cors");
+const config = require("./config/config");
 
 var app = express();
 
@@ -27,25 +26,19 @@ var app = express();
 //   // credentials: true, // Allow sending cookies
 // }))
 
+app.use(cors());
 
-
-app.use(cors())
-
-app.use(logger('dev'));
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static('public'));
+app.use(express.static("public"));
 
-app.set('trust_proxy', true)
+app.set("trust_proxy", true);
 
 // console.log(config.allowedOrigin);
 
-app.use('/', apiRouter);
-
-
-
-
+app.use("/", apiRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -56,13 +49,14 @@ app.use(function (req, res, next) {
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  res.locals.error = req.app.get("env") === "development" ? err : {};
 
+  console.error("🔥 Global Error Handler:", err);
   // render the error page
   res.status(err.status || 500);
   res.send({
     status: false,
-    error: err
+    error: err,
   });
 });
 

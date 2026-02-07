@@ -25,6 +25,7 @@ export default function Login() {
     });
 
     const onSubmit = async (data) => {
+        console.log('Login button pressed. Form data:', data);
         const result = await login(data.email, data.password);
         if (result.success) {
             router.replace('/(tabs)');
@@ -101,7 +102,9 @@ export default function Login() {
                         </View>
 
                         <TouchableOpacity
-                            onPress={handleSubmit(onSubmit)}
+                            onPress={() => {
+                                handleSubmit(onSubmit)()
+                            }}
                             disabled={isLoading}
                             className={`w-full bg-blue-600 rounded-xl py-4 items-center shadow-md shadow-blue-200 mt-4 ${isLoading ? 'opacity-70' : ''}`}
                         >
