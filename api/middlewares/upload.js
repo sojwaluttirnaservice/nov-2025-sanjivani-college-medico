@@ -25,17 +25,20 @@ const configureMulter = (destPath) => {
 
         // Absolute path on disk
         const fullPath = path.join(destPath, generatedName);
-        const absolutePath = fullPath; // ✅ assign fullPath to absolutePath
+        const absolutePath = fullPath;
 
-        // Find index of '/uploads' in fullPath
-        const uploadsIndex = fullPath.indexOf("/uploads");
+        // Normalize path to use forward slashes for cross-platform compatibility
+        const normalizedPath = fullPath.replace(/\\/g, "/");
+
+        // Find index of '/uploads' in normalized path
+        const uploadsIndex = normalizedPath.indexOf("/uploads");
 
         if (uploadsIndex === -1) {
           throw new Error("DestPath must include '/uploads' folder");
         }
 
         // Slice from /uploads to end → correct DB path
-        const dbPath = fullPath.substring(uploadsIndex).replace(/\\/g, "/"); // Windows fix
+        const dbPath = normalizedPath.substring(uploadsIndex);
 
         // Attach paths to file object
         req.fileDBPath = dbPath; // for saving in DB
