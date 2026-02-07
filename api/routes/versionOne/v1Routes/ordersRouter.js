@@ -10,6 +10,9 @@ ordersRouter.get("/", isAuthenticated, ordersController.getOrders);
 // [NEW] Get pharmacy stats
 ordersRouter.get("/stats", isAuthenticated, ordersController.getStats);
 
+// [NEW] Get my orders (Customer)
+ordersRouter.get("/my-orders", isAuthenticated, ordersController.getMyOrders);
+
 // Create new order (Handles inventory deduction)
 ordersRouter.post("/", isAuthenticated, ordersController.createOrder);
 
@@ -28,6 +31,13 @@ ordersRouter.patch(
   "/:id/deliver",
   isAuthenticated,
   ordersController.deliverOrder,
+);
+
+// Reject/Cancel order
+ordersRouter.patch(
+  "/:id/reject",
+  isAuthenticated,
+  ordersController.rejectOrder,
 );
 
 module.exports = ordersRouter;

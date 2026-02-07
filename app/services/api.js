@@ -1,109 +1,54 @@
-import axios from "axios";
+import { HttpClient } from "@/utils/instance";
+import toast from "@/utils/toast";
 import * as SecureStore from "expo-secure-store";
-import { router } from "expo-router";
 
 // API Configuration
-// Replace with your computer's IP address if testing on a physical device
-// For Android Emulator, use 'http://10.0.2.2:2555'
-// For iOS Simulator, use 'http://localhost:2555'
-// const API_URL = "http://10.141.179.220:2555/api/v1";
-const API_URL = "http://192.168.1.47:2555/api/v1";
+const API_URL = "http://10.126.255.131:2555/api/v1";
 
-const api = axios.create({
+const api = new HttpClient({
   baseURL: API_URL,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 10000, // 10 second timeout
 });
 
-// Request Interceptor - Inject JWT Token
-api.interceptors.request.use(
-  async (config) => {
-    try {
-      const token = await SecureStore.getItemAsync("token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch (error) {
-      console.error("Error retrieving token:", error);
+// Auth Token Interceptor using SecureStore (Safer than AsyncStorage)
+// Auth Token Interceptor using SecureStore (Safer than AsyncStorage)
+api.useRequestInterceptor(async (url, config) => {
+  try {
+    const token = await SecureStore.getItemAsync("token");
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
+  } catch (e) {
+    console.warn("Failed to fetch token", e);
+  }
+  return { url, config };
+});
 
-// Response Interceptor - Handle API Response Format & Errors
-api.interceptors.response.use(
-  (response) => {
-    /**
-     * Backend Response Format:
-     * {
-     *   success: true,
-     *   statusCode: 200,
-     *   message: "Success message",
-     *   data: { ... },
-     *   error: null
-     * }
-     *
-     * We return the entire response.data so consumers can access:
-     * - response.success
-     * - response.message
-     * - response.data
-     */
-    return response.data;
-  },
-  async (error) => {
-    // Handle network errors
-    if (!error.response) {
-      return Promise.reject({
-        success: false,
-        message: "Network error. Please check your connection.",
-        statusCode: 0,
-        data: null,
-        error: error.message,
-      });
+// Logging Interceptor (Dev only?)
+api.useResponseInterceptor((data, response) => {
+  // Only log in dev mode if possible, but for now keeping it as requested
+  // console.log('Response:', response.status, data);
+  return data;
+});
+
+// Global Error Handler Interceptor
+api.useResponseInterceptor((data, response) => {
+  if (response && response.status) {
+    const statusCode = response.status;
+    // Handle unauthorized globally?
+    if (statusCode === 401) {
+      // e.g. Navigate to login?
+      // toast.error('Session expired');
+    } else if (statusCode >= 400 && statusCode < 500) {
+      if (data && data.usrMsg) toast.warning(data.usrMsg);
+    } else if (statusCode >= 500) {
+      toast.error("Something went wrong on the server");
     }
-
-    // Extract backend error response
-    const errorResponse = error.response.data;
-
-    /**
-     * Backend Error Format:
-     * {
-     *   success: false,
-     *   statusCode: 400/401/404/500,
-     *   message: "Error message from backend",
-     *   data: null,
-     *   error: "Error details"
-     * }
-     */
-
-    // Handle 401 Unauthorized - Auto logout
-    if (error.response.status === 401) {
-      try {
-        await SecureStore.deleteItemAsync("token");
-        await SecureStore.deleteItemAsync("user");
-        // Redirect to login (only if not already on auth screen)
-        if (router.canGoBack()) {
-          router.replace("/(auth)/login");
-        }
-      } catch (e) {
-        console.error("Error during auto-logout:", e);
-      }
-    }
-
-    // Return structured error with backend message
-    return Promise.reject({
-      success: false,
-      message: errorResponse?.message || "An error occurred",
-      statusCode: error.response.status,
-      data: errorResponse?.data || null,
-      error: errorResponse?.error || error.message,
-    });
-  },
-);
+  }
+  return data;
+});
 
 export default api;

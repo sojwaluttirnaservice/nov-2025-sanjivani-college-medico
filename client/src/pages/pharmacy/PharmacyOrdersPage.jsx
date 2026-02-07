@@ -8,7 +8,7 @@ import { useOrders } from '../../hooks/useOrders'
 const PharmacyOrdersPage = () => {
     const user = useSelector(selectCurrentUser)
     const pharmacyId = user?.pharmacy_id
-    const { ordersQuery } = useOrders(pharmacyId)
+    const { ordersQuery, markDelivered, rejectOrder } = useOrders(pharmacyId)
     const { data: ordersData, isLoading, error } = ordersQuery
     const orders = ordersData?.orders || []
 
@@ -47,14 +47,32 @@ const PharmacyOrdersPage = () => {
                                     <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end">
                                         <span className="font-bold text-gray-900">₹{parseFloat(order.total_amount).toFixed(2)}</span>
                                         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${order.order_status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
-                                            order.order_status === 'ready' ? 'bg-green-100 text-green-800' :
-                                                'bg-gray-100 text-gray-800'
+                                            order.order_status === 'DELIVERED' ? 'bg-green-100 text-green-800' :
+                                                order.order_status === 'ready' ? 'bg-blue-100 text-blue-800' :
+                                                    'bg-gray-100 text-gray-800'
                                             }`}>
                                             {order.order_status?.replace('_', ' ')}
                                         </span>
-                                        <button className="text-sm font-medium text-teal-600 hover:text-teal-800">
-                                            View
-                                        </button>
+
+                                        {order.order_status !== 'DELIVERED' && order.order_status !== 'CANCELLED' && (
+                                            <div className="flex gap-2">
+                                                <RejectButton
+                                                    onConfirm={() => rejectOrder.mutate(order.id)}
+                                                    isLoading={rejectOrder.isPending}
+                                                />
+                                                <button
+                                                    onClick={() => {
+                                                        if (window.confirm('Are you sure you want to mark this order as delivered? Use this only after collecting payment.')) {
+                                                            markDelivered.mutate(order.id)
+                                                        }
+                                                    }}
+                                                    disabled={markDelivered.isPending}
+                                                    className="px-3 py-1.5 bg-teal-600 text-white text-xs font-bold rounded-lg shadow-sm hover:bg-teal-700 disabled:opacity-50"
+                                                >
+                                                    {markDelivered.isPending ? 'Updating...' : 'Mark Delivered'}
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))
@@ -71,3 +89,36 @@ const PharmacyOrdersPage = () => {
 }
 
 export default PharmacyOrdersPage
+
+import { useState, useEffect } from 'react'
+
+const RejectButton = ({ onConfirm, isLoading }) => {
+    const [confirming, setConfirming] = useState(false);
+
+    useEffect(() => {
+        if (confirming) {
+            const timer = setTimeout(() => setConfirming(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [confirming]);
+
+    return (
+        <button
+            onClick={() => {
+                if (confirming) {
+                    onConfirm();
+                    setConfirming(false);
+                } else {
+                    setConfirming(true);
+                }
+            }}
+            disabled={isLoading}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg shadow-sm disabled:opacity-50 transition-colors ${confirming
+                ? 'bg-red-600 text-white animate-pulse'
+                : 'bg-white border border-red-200 text-red-500 hover:bg-red-50'
+                }`}
+        >
+            {isLoading ? '...' : confirming ? 'Confirm Reject?' : 'Reject'}
+        </button>
+    );
+};

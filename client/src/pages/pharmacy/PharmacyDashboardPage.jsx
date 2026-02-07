@@ -7,6 +7,7 @@ import { TrendingUp, AlertCircle, ShoppingBag, Settings, Clipboard, Eye } from '
 
 import { useOrders } from '../../hooks/useOrders'
 import { usePrescriptions } from '../../hooks/usePrescriptions'
+import { useInventory } from '../../hooks/useInventory'
 
 const PharmacyDashboardPage = () => {
     const navigate = useNavigate()
@@ -14,14 +15,17 @@ const PharmacyDashboardPage = () => {
     const pharmacyId = user?.pharmacy_id
     const { statsQuery, ordersQuery } = useOrders(pharmacyId)
     const { requestsQuery } = usePrescriptions(pharmacyId)
+    const { lowStockQuery } = useInventory(pharmacyId)
 
     const { data: statsData } = statsQuery
     const { data: ordersData } = ordersQuery
     const { data: requestsData } = requestsQuery
+    const { data: lowStockData } = lowStockQuery
 
     const stats = statsData?.stats || { total_revenue: 0, active_orders: 0, total_orders: 0 }
     const recentOrders = ordersData?.orders?.slice(0, 5) || []
     const pendingRequests = requestsData?.requests || []
+    const lowStockItems = lowStockData || []
 
     // Mock Pharmacy Details (would come from API join with user)
     const pharmacyDetails = {
@@ -107,7 +111,7 @@ const PharmacyDashboardPage = () => {
                     <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
                         <div>
                             <p className="text-sm font-medium text-gray-500 mb-1">Low Stock Items</p>
-                            <h3 className="text-xl font-bold text-gray-900">5</h3>
+                            <h3 className="text-xl font-bold text-gray-900">{lowStockItems.length}</h3>
                             <span className="text-red-500 text-[10px] font-medium mt-1">
                                 Restock soon
                             </span>
@@ -197,23 +201,23 @@ const PharmacyDashboardPage = () => {
                         <h3 className="text-lg font-bold text-gray-900">Low Stock Alerts</h3>
                     </div>
                     <div className="space-y-4">
-                        {[
-                            { id: 2, name: 'Amoxicillin 250mg', qty: 20, limit: 30 },
-                            { id: 5, name: 'Metformin 500mg', qty: 15, limit: 50 },
-                            { id: 8, name: 'Ibuprofen 400mg', qty: 10, limit: 40 }
-                        ].map(item => (
-                            <div key={item.id} className="flex items-center justify-between p-3 border border-red-100 bg-red-50/50 rounded-lg">
-                                <div>
-                                    <p className="font-medium text-gray-900">{item.name}</p>
-                                    <p className="text-xs text-red-600 font-medium">Only {item.qty} units left</p>
+                        {lowStockItems.length > 0 ? (
+                            lowStockItems.map(item => (
+                                <div key={item.medicine_id} className="flex items-center justify-between p-3 border border-red-100 bg-red-50/50 rounded-lg">
+                                    <div>
+                                        <p className="font-medium text-gray-900">{item.medicine_name}</p>
+                                        <p className="text-xs text-red-600 font-medium">Only {item.available_quantity} units left</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <button className="px-3 py-1.5 bg-white border border-red-200 text-red-600 text-xs font-bold rounded-lg hover:bg-red-50 transition-colors">
+                                            Restock
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <button className="px-3 py-1.5 bg-white border border-red-200 text-red-600 text-xs font-bold rounded-lg hover:bg-red-50 transition-colors">
-                                        Restock
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        ) : (
+                            <p className="text-center text-gray-500 text-sm py-4">No low stock alerts. Good job!</p>
+                        )}
                     </div>
                 </div>
             </Container>

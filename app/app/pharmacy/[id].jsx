@@ -109,16 +109,9 @@ export default function PharmacyDetailScreen() {
 
             // Using axios directly or api instance with specific headers
             // Ensure content-type is multipart/form-data
-            const response = await api.post('/prescriptions/upload', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                transformRequest: (data, headers) => {
-                    // Start of workaround for React Native FormData
-                    // Axios transformation might strip FormData, so we return it directly
-                    return data;
-                },
-            });
+            // Using axios directly or api instance with specific headers
+            // Ensure content-type is multipart/form-data
+            const response = await api.post('/prescriptions/upload', formData);
 
             if (response.success || response?.data?.prescription_id) { // success check based on API structure
                 Alert.alert("Success", "Prescription uploaded successfully!", [

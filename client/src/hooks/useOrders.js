@@ -56,6 +56,36 @@ export const useOrders = (pharmacyId) => {
     },
   });
 
+  const markDelivered = useMutation({
+    mutationFn: async (orderId) => {
+      const { data } = await instance.patch(`/orders/${orderId}/deliver`);
+      return data;
+    },
+    onSuccess: () => {
+      showSuccess("Order marked as delivered");
+      queryClient.invalidateQueries(["orders", pharmacyId]);
+      queryClient.invalidateQueries(["order-stats", pharmacyId]);
+    },
+    onError: (error) => {
+      showError(error, "Failed to update order");
+    },
+  });
+
+  const rejectOrder = useMutation({
+    mutationFn: async (orderId) => {
+      const { data } = await instance.patch(`/orders/${orderId}/reject`);
+      return data;
+    },
+    onSuccess: () => {
+      showSuccess("Order rejected and stock restored");
+      queryClient.invalidateQueries(["orders", pharmacyId]);
+      queryClient.invalidateQueries(["order-stats", pharmacyId]);
+    },
+    onError: (error) => {
+      showError(error, "Failed to reject order");
+    },
+  });
+
   const useOrderDetailsQuery = (id) =>
     useQuery({
       queryKey: ["order", id],
@@ -71,6 +101,8 @@ export const useOrders = (pharmacyId) => {
     statsQuery,
     updateStatus,
     createOrder,
+    markDelivered,
+    rejectOrder,
     useOrderDetailsQuery,
   };
 };
