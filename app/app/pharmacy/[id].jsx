@@ -103,8 +103,8 @@ export default function PharmacyDetailScreen() {
                 type: `image/${fileType === 'jpg' ? 'jpeg' : fileType}`,
             });
 
-            formData.append('customer_id', customerId);
-            formData.append('pharmacy_id', id);
+            formData.append('customer_id', String(customerId));
+            formData.append('pharmacy_id', String(id));
             if (notes) formData.append('notes', notes);
 
             // Using axios directly or api instance with specific headers

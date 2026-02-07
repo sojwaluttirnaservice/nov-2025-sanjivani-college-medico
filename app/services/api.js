@@ -7,7 +7,7 @@ const API_URL = "http://10.126.255.131:2555/api/v1";
 
 const api = new HttpClient({
   baseURL: API_URL,
-  timeout: 15000,
+  timeout: 60000,
   headers: {
     "Content-Type": "application/json",
   },
