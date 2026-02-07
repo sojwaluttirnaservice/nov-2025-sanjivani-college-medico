@@ -9,6 +9,7 @@ const pool = mysql.createPool({
   queueLimit: 0,
 
   enableKeepAlive: false,
+  connectTimeout: 60000, // 60 seconds
 });
 
 const db = pool.promise();
