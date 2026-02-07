@@ -56,8 +56,14 @@ export default function EditProfileScreen() {
 
     // Prefill form when profile data is loaded
     useEffect(() => {
-        if (profileData?.success && profileData?.data?.exists) {
-            const profile = profileData.data.profile;
+        let profile = null;
+        if (profileData?.exists) {
+            profile = profileData.profile;
+        } else if (profileData?.success && profileData?.data?.exists) {
+            profile = profileData.data.profile;
+        }
+
+        if (profile) {
             // Handle both array (typical) and object (fallback) responses
             const profileObj = Array.isArray(profile) ? (profile.length > 0 ? profile[0] : null) : profile;
 

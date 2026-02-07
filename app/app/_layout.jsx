@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, router, useSegments } from 'expo-router';
+import { Stack, router, useSegments, useRootNavigationState } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { LogBox } from 'react-native';
@@ -35,13 +35,14 @@ export default function RootLayout() {
     const colorScheme = useColorScheme();
     const { initialize, isAuthenticated, isLoading } = useAuthStore();
     const segments = useSegments();
+    const navigationState = useRootNavigationState();
 
     useEffect(() => {
         initialize();
     }, []);
 
     useEffect(() => {
-        if (isLoading) return;
+        if (isLoading || !navigationState?.key) return;
 
         const inAuthGroup = segments[0] === '(auth)';
 
@@ -52,7 +53,7 @@ export default function RootLayout() {
             // Redirect to tabs if authenticated and trying to access auth pages
             router.replace('/(tabs)');
         }
-    }, [isAuthenticated, segments, isLoading]);
+    }, [isAuthenticated, segments, isLoading, navigationState?.key]);
 
     if (isLoading) {
         return null; // Or a splash screen

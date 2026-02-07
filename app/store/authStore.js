@@ -33,6 +33,7 @@ const useAuthStore = create((set, get) => ({
   login: async (email, password, role = "CUSTOMER") => {
     try {
       set({ isLoading: true });
+      console.log("Attempting to login with:", email, password);
 
       // API returns: { success, message, data: { user, token } }
       const response = await api.post("/users/login", {
@@ -40,6 +41,7 @@ const useAuthStore = create((set, get) => ({
         password,
         role,
       });
+      console.log("Login API response:", response);
 
       // Check if login was successful
       if (!response.success) {
@@ -68,6 +70,7 @@ const useAuthStore = create((set, get) => ({
         message: response.message || "Login successful",
       };
     } catch (error) {
+      console.error("Login action error:", error);
       set({ isLoading: false });
       // Error interceptor already formats this properly
       return {
