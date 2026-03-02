@@ -58,14 +58,17 @@ const inventoryService = {
 
   // Simple: Add new stock
   addStock: async (data) => {
-    // Validate data
-    if (!data.expiry_date || !data.quantity) {
+    // Accept both camelCase (expiryDate) and snake_case (expiry_date) from different callers
+    const expiryDate = data.expiryDate || data.expiry_date;
+
+    if (!expiryDate || !data.quantity) {
       throw new Error("Missing required stock details (expiry_date, quantity)");
     }
 
     // Auto-generate batch_no if not provided (for "Simple" mode)
     const stockData = {
       ...data,
+      expiryDate,
       batch_no: data.batch_no || "BATCH-" + Date.now(),
     };
 

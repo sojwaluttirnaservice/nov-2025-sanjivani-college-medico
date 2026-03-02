@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
-import { LayoutDashboard, Pill, Package, UserCircle } from 'lucide-react'
+import { LayoutDashboard, Pill, Package, UserCircle, PackageSearch } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import Sidebar from '../components/dashboard/Sidebar'
 import DashboardNavbar from '../components/dashboard/DashboardNavbar'
@@ -34,6 +34,7 @@ const PharmacyLayout = () => {
         { label: 'Dashboard', path: '/pharmacy/dashboard', icon: LayoutDashboard, exact: true },
         { label: 'Inventory', path: '/pharmacy/inventory', icon: Pill },
         { label: 'Orders', path: '/pharmacy/orders', icon: Package },
+        { label: 'Restock Requests', path: '/pharmacy/restock-requests', icon: PackageSearch },
         { label: 'Profile', path: '/pharmacy/profile', icon: UserCircle },
     ]
 

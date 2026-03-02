@@ -53,7 +53,11 @@ const ordersModel = {
 
     const itemsSql = `
       SELECT 
-        oi.*, 
+        oi.id,
+        oi.medicine_id,
+        oi.quantity,
+        oi.unit_price,
+        oi.subtotal,
         m.name as medicine_name, 
         m.brand
       FROM order_items oi
@@ -100,8 +104,19 @@ const ordersModel = {
 
   // Add item to order
   addOrderItem: (data) => {
-    const q = `INSERT INTO order_items (order_id, medicine_id, quantity) VALUES (?, ?, ?)`;
-    return query(q, [data.order_id, data.medicine_id, data.quantity]);
+    const unitPrice = parseFloat(data.price || 0);
+    const qty = parseInt(data.quantity || 1);
+    const q = `
+      INSERT INTO order_items (order_id, medicine_id, quantity, unit_price, subtotal)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    return query(q, [
+      data.order_id,
+      data.medicine_id,
+      qty,
+      unitPrice,
+      unitPrice * qty,
+    ]);
   },
 
   // Get pharmacy stats (Revenue, Active Orders)

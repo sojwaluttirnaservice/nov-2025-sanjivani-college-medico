@@ -1,10 +1,8 @@
 import React, { useState } from 'react'
 import Container from '../../components/utils/Container'
-import { useSelector } from 'react-redux'
 import { Mail, Phone, MapPin, Clock, Send, MessageSquare, HelpCircle } from 'lucide-react'
 
 const ContactPage = () => {
-    const app = useSelector(state => state.app)
     const [formData, setFormData] = useState({
         name: '',
         email: '',

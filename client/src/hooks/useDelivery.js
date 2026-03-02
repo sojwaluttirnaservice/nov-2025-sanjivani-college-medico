@@ -9,7 +9,7 @@ export const useDelivery = () => {
     queryKey: ["active-deliveries"],
     queryFn: async () => {
       const { data } = await instance.get("/deliveries/active");
-      return data;
+      return data?.data || [];
     },
   });
 
@@ -17,7 +17,7 @@ export const useDelivery = () => {
     queryKey: ["delivery-history"],
     queryFn: async () => {
       const { data } = await instance.get("/deliveries/history");
-      return data;
+      return data?.data || [];
     },
   });
 

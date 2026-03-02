@@ -2,6 +2,7 @@ import Container from '../../components/utils/Container'
 import { useSelector } from 'react-redux'
 import { Building, StickyNote, Users } from 'lucide-react';
 
+// eslint-disable-next-line no-unused-vars
 const FeatureCard = ({ icon: Icon, title, description, linkText, linkHref, color }) => {
     return (
         <div

@@ -11,7 +11,7 @@ const deliveriesModel = {
         o.id, 
         o.order_status, 
         o.delivery_address, 
-        c.name as customer_name, 
+        c.full_name as customer_name, 
         c.phone as customer_phone
       FROM orders o
       JOIN customers c ON o.customer_id = c.id
@@ -31,7 +31,7 @@ const deliveriesModel = {
         o.order_status, 
         o.delivered_at, 
         o.total_amount, /* earnings calc would go here */
-        c.name as customer_name
+        c.full_name as customer_name
       FROM orders o
       JOIN customers c ON o.customer_id = c.id
       WHERE o.order_status = 'delivered'

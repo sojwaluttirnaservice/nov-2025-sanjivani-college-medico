@@ -190,21 +190,17 @@ const PharmacyPrescriptionReviewPage = () => {
                                         <div className="grid grid-cols-2 gap-4 mt-4">
                                             <div>
                                                 <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Select Batch</label>
-                                                <select
-                                                    className="w-full h-9 text-xs border border-gray-200 rounded-lg focus:ring-teal-500 focus:border-teal-500"
-                                                    onChange={(e) => {
+                                                <BatchSelector
+                                                    item={item}
+                                                    pharmacyId={pharmacyId}
+                                                    onSelect={(batchId, price, medicineId) => {
                                                         const newItems = [...items]
-                                                        newItems[index].batch_id = e.target.value
-                                                        // Price would be fetched from batch in real app
-                                                        newItems[index].price = 120
-                                                        newItems[index].medicine_id = 1 // Mock
+                                                        newItems[index].batch_id = batchId
+                                                        newItems[index].price = price
+                                                        newItems[index].medicine_id = medicineId
                                                         setItems(newItems)
                                                     }}
-                                                >
-                                                    <option>Select Batch</option>
-                                                    <option value="1">B-101 (Exp: 12/25) - ₹120.00</option>
-                                                    <option value="2">B-202 (Exp: 08/26) - ₹135.00</option>
-                                                </select>
+                                                />
                                             </div>
                                             <div>
                                                 <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Unit Price</label>
@@ -264,3 +260,83 @@ const PharmacyPrescriptionReviewPage = () => {
 }
 
 export default PharmacyPrescriptionReviewPage
+
+// BatchSelector — loads real batches from inventory API by medicine name
+const BatchSelector = ({ item, pharmacyId, onSelect }) => {
+    const [batches, setBatches] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [searched, setSearched] = useState(false)
+
+    useEffect(() => {
+        if (!item.medicine_id && item.name && pharmacyId) {
+            // Search for this medicine in pharmacy inventory by name
+            const search = async () => {
+                setLoading(true)
+                try {
+                    const { data } = await import('../../utils/instance').then(m =>
+                        m.instance.get(`/medicines/search?q=${encodeURIComponent(item.name)}`)
+                    )
+                    const match = Array.isArray(data) ? data[0] : null
+                    if (match) {
+                        // Fetch batches for this medicine
+                        const { data: batchData } = await import('../../utils/instance').then(m =>
+                            m.instance.get(`/inventory/batches?medicineId=${match.id}&pharmacyId=${pharmacyId}`)
+                        )
+                        setBatches(Array.isArray(batchData) ? batchData : [])
+                    }
+                } catch {
+                    setBatches([])
+                } finally {
+                    setLoading(false)
+                    setSearched(true)
+                }
+            }
+            search()
+        } else if (item.medicine_id && pharmacyId) {
+            // Already have medicine_id, fetch directly
+            const fetchBatches = async () => {
+                setLoading(true)
+                try {
+                    const { data } = await import('../../utils/instance').then(m =>
+                        m.instance.get(`/inventory/batches?medicineId=${item.medicine_id}&pharmacyId=${pharmacyId}`)
+                    )
+                    setBatches(Array.isArray(data) ? data : [])
+                } catch {
+                    setBatches([])
+                } finally {
+                    setLoading(false)
+                    setSearched(true)
+                }
+            }
+            fetchBatches()
+        }
+    }, [item.name, item.medicine_id, pharmacyId])
+
+    if (loading) {
+        return <div className="w-full h-9 bg-gray-100 rounded-lg animate-pulse text-xs flex items-center px-3 text-gray-400">Loading batches...</div>
+    }
+
+    if (searched && batches.length === 0) {
+        return <div className="w-full h-9 bg-red-50 border border-red-100 rounded-lg text-xs flex items-center px-3 text-red-400">Not in stock</div>
+    }
+
+    return (
+        <select
+            className="w-full h-9 text-xs border border-gray-200 rounded-lg focus:ring-teal-500 focus:border-teal-500"
+            defaultValue=""
+            onChange={(e) => {
+                const batch = batches.find(b => String(b.id) === String(e.target.value))
+                if (batch) {
+                    onSelect(batch.id, parseFloat(batch.price || 0), batch.medicine_id)
+                }
+            }}
+        >
+            <option value="" disabled>Select Batch</option>
+            {batches.map(batch => (
+                <option key={batch.id} value={batch.id}>
+                    {batch.batch_no} · Exp: {batch.expiry_date ? new Date(batch.expiry_date).toLocaleDateString('en-IN') : 'N/A'} · ₹{parseFloat(batch.price || 0).toFixed(2)} · Qty: {batch.quantity}
+                </option>
+            ))}
+        </select>
+    )
+}

@@ -18,5 +18,6 @@ v1Router.use("/inventory", require("./v1Routes/inventoryRouter"));
 v1Router.use("/orders", require("./v1Routes/ordersRouter"));
 v1Router.use("/deliveries", require("./v1Routes/deliveryRouter"));
 v1Router.use("/medicines", require("./v1Routes/medicinesRouter"));
+v1Router.use("/restock", require("./v1Routes/restockRouter"));
 
 module.exports = v1Router;

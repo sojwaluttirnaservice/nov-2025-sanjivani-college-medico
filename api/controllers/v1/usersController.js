@@ -1,5 +1,6 @@
 const customersModel = require("../../models/customers.model");
 const pharmaciesModel = require("../../models/pharmacies.model");
+const deliveryAgentsModel = require("../../models/deliveryAgents.model");
 const usersModel = require("../../models/users.model");
 const asyncHandler = require("../../utils/asyncHandler");
 const APP_ROLES = require("../../utils/checks/roles");
@@ -76,6 +77,15 @@ const usersController = {
       return sendError(res, STATUS.NOT_FOUND, "Invalid Credentials");
     }
 
+    // Ensure the role selected in the frontend matches the user's actual role
+    if (existingUser.role !== role) {
+      return sendError(
+        res,
+        STATUS.FORBIDDEN,
+        "Invalid role selected for this account.",
+      );
+    }
+
     let extraId = {};
     if (existingUser.role === APP_ROLES.CUSTOMER) {
       const [customer] = await customersModel.checkByUserId(existingUser.id);
@@ -83,6 +93,9 @@ const usersController = {
     } else if (existingUser.role === APP_ROLES.PHARMACY) {
       const [pharmacy] = await pharmaciesModel.checkByUserId(existingUser.id);
       if (pharmacy) extraId.pharmacy_id = pharmacy.pharmacy_id;
+    } else if (existingUser.role === APP_ROLES.DELIVERY_AGENT) {
+      const [agent] = await deliveryAgentsModel.checkByUserId(existingUser.id);
+      if (agent) extraId.agent_id = agent.agent_id;
     }
 
     const user = {
@@ -114,7 +127,7 @@ const usersController = {
     } else if (role === APP_ROLES.PHARMACY) {
       user = await pharmaciesModel.getWithUser(userId);
     } else if (role === APP_ROLES.DELIVERY_AGENT) {
-      // user = await deliveryAgentModel.getWithUser(userId);
+      user = await deliveryAgentsModel.getWithUser(userId);
     } else {
       return sendError(res, STATUS.FORBIDDEN, "Role not supported");
     }

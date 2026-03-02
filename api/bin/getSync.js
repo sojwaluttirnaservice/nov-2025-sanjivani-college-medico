@@ -18,6 +18,7 @@ const customerSchema = require("../schemas/customers");
 const adminSchema = require("../schemas/admins");
 const activityLogSchema = require("../schemas/activity_logs");
 const prescriptionAnalysisSchema = require("../schemas/prescription_analysis");
+const restockRequestSchema = require("../schemas/restock_requests");
 
 const createDatabaseIfNotExists = async () => {
   try {
