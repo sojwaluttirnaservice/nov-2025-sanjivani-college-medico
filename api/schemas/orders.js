@@ -1,4 +1,3 @@
-
 const { INTEGER, STRING, DATE, DECIMAL } = require("sequelize");
 const sequelize = require("../config/sequelize");
 const Customer = require("./customers");
@@ -63,7 +62,8 @@ const orderSchema = sequelize.define(
       type: STRING,
       allowNull: false,
       defaultValue: "processing",
-      comment: "Order stage: processing, ready, dispatched, delivered, cancelled",
+      comment:
+        "Order stage: processing, ready, dispatched, delivered, cancelled",
     },
 
     delivery_address: {
@@ -94,14 +94,15 @@ const orderSchema = sequelize.define(
     updatedAt: {
       type: DATE,
       defaultValue: sequelize.literal(
-        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
       ),
       allowNull: false,
     },
   },
   {
     timestamps: true,
-  }
+    indexes: [{ fields: ["payment_status"] }, { fields: ["order_status"] }],
+  },
 );
 
 // Associations

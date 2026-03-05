@@ -2,18 +2,20 @@ import React, { useState, useEffect } from 'react'
 import Container from '../../components/utils/Container'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectCurrentUser, updateUser } from '../../redux/slices/authSlice'
-import { Save, Loader, Edit2, Truck } from 'lucide-react'
-import { instance } from '../../utils/instance'
-import { showSuccess, showError } from '../../utils/error'
+import { Save, Loader, Edit2, Truck, UserCircle } from 'lucide-react'
+import { showError } from '../../utils/error'
+import { useDelivery } from '../../hooks/useDelivery'
 
 const DeliveryProfilePage = () => {
     const user = useSelector(selectCurrentUser)
     const dispatch = useDispatch()
 
-    const [profile, setProfile] = useState(null)
-    const [loadingProfile, setLoadingProfile] = useState(true)
+    const { profileQuery, updateProfile } = useDelivery()
+    const { data: profile, isLoading: loadingProfile } = profileQuery
+
+    const { mutate: updateMutate, isPending: saving } = updateProfile
+
     const [editing, setEditing] = useState(false)
-    const [saving, setSaving] = useState(false)
 
     const [form, setForm] = useState({
         full_name: '',
@@ -21,58 +23,39 @@ const DeliveryProfilePage = () => {
         vehicle_number: '',
     })
 
-    // Fetch profile on mount
+    // Sync form with profile when profile loads
     useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                setLoadingProfile(true)
-                const { data: profileData } = await instance.get('/deliveries/profile')
-                console.log(profileData)
-                if (profileData) {
-                    setProfile(profileData)
-                    setForm({
-                        full_name: profileData.full_name || '',
-                        phone: profileData.phone || '',
-                        vehicle_number: profileData.vehicle_number || '',
-                    })
-                } else {
-                    // No profile yet — open edit mode automatically
-                    setEditing(true)
-                }
-            } catch (err) {
-                console.error('Failed to load profile', err)
-                setEditing(true)
-            } finally {
-                setLoadingProfile(false)
-            }
+        if (profile) {
+            setForm({
+                full_name: profile.full_name || '',
+                phone: profile.phone || '',
+                vehicle_number: profile.vehicle_number || '',
+            })
+        } else if (!loadingProfile) {
+            // No profile yet — open edit mode automatically
+            setEditing(true)
         }
-        fetchProfile()
-    }, [])
+    }, [profile, loadingProfile])
 
     const handleChange = (e) =>
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
 
-    const handleSave = async (e) => {
+    const handleSave = (e) => {
         e.preventDefault()
         if (!form.full_name || !form.phone) {
             showError(null, 'Name and phone are required')
             return
         }
-        try {
-            setSaving(true)
-            const { data: updatedProfile } = await instance.put('/deliveries/profile', form)
-            setProfile(updatedProfile)
-            // Update agent_id in Redux so supply requests start loading
-            if (updatedProfile?.agent_id) {
-                dispatch(updateUser({ agent_id: updatedProfile.agent_id }))
+
+        updateMutate(form, {
+            onSuccess: (updatedProfile) => {
+                // Update agent_id in Redux so supply requests start loading
+                if (updatedProfile?.agent_id) {
+                    dispatch(updateUser({ agent_id: updatedProfile.agent_id }))
+                }
+                setEditing(false)
             }
-            showSuccess('Profile saved!')
-            setEditing(false)
-        } catch (err) {
-            showError(err, 'Failed to save profile')
-        } finally {
-            setSaving(false)
-        }
+        })
     }
 
     if (loadingProfile) {
@@ -125,7 +108,7 @@ const DeliveryProfilePage = () => {
                     {/* Card: no profile yet */}
                     {!profile && !editing && (
                         <div className="text-center py-8 text-gray-400">
-                            <User className="w-10 h-10 mx-auto mb-2 opacity-25" />
+                            <UserCircle className="w-10 h-10 mx-auto mb-2 opacity-25" />
                             <p className="text-sm">No profile set up yet.</p>
                             <button
                                 onClick={() => setEditing(true)}
@@ -155,6 +138,7 @@ const DeliveryProfilePage = () => {
                                 <input
                                     type="text"
                                     name="full_name"
+                                    autoComplete='off'
                                     value={form.full_name}
                                     onChange={handleChange}
                                     placeholder="Your full name"
@@ -170,6 +154,7 @@ const DeliveryProfilePage = () => {
                                 <input
                                     type="tel"
                                     name="phone"
+                                    autoComplete='off'
                                     value={form.phone}
                                     onChange={handleChange}
                                     placeholder="+91 XXXXXXXXXX"
@@ -185,6 +170,7 @@ const DeliveryProfilePage = () => {
                                 <input
                                     type="text"
                                     name="vehicle_number"
+                                    autoComplete='off'
                                     value={form.vehicle_number}
                                     onChange={handleChange}
                                     placeholder="e.g. MH-17-AB-1234"

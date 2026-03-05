@@ -15,8 +15,9 @@ const DeliveryLayout = () => {
         const fetchProfile = async () => {
             try {
                 const response = await instance.get('/users/me')
-                if (response.success && response.data?.user) {
-                    dispatch(updateUser(response.data.user))
+                // axios wraps body in response.data; sendSuccess wraps in {success, data: {user}}
+                if (response.data?.success && response.data?.data?.user) {
+                    dispatch(updateUser(response.data.data.user))
                 }
             } catch (err) {
                 console.error("Failed to sync delivery profile:", err)

@@ -2,6 +2,7 @@ const pharmaciesModel = require("../../models/pharmacies.model");
 const asyncHandler = require("../../utils/asyncHandler");
 const { sendError, sendSuccess } = require("../../utils/responses/ApiResponse");
 const STATUS = require("../../utils/status");
+const inventoryService = require("../../services/inventoryService");
 
 /**
  * Create or Update pharmacy profile
@@ -50,7 +51,25 @@ const pharmaciesController = {
     }
 
     // CREATE
-    await pharmaciesModel.create(payload);
+    const insertResult = await pharmaciesModel.create(payload);
+
+    // Seed default inventory for the newly created pharmacy
+    try {
+      if (insertResult && insertResult.insertId) {
+        await inventoryService.seedDefaultInventory(insertResult.insertId);
+      } else {
+        // Fallback: fetch the pharmacy we just created to get its ID
+        const newPharmacy = await pharmaciesModel.checkByUserId(userId);
+        if (newPharmacy && newPharmacy.length > 0) {
+          await inventoryService.seedDefaultInventory(
+            newPharmacy[0].pharmacy_id,
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Error seeding default inventory:", err);
+      // We don't fail the request if seeding fails, as the profile is already created
+    }
 
     return sendSuccess(
       res,

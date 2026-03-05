@@ -65,6 +65,7 @@ const prescriptionAnalysisSchema = sequelize.define(
   {
     timestamps: false,
     freezeTableName: true,
+    indexes: [{ fields: ["status"] }],
   },
 );
 

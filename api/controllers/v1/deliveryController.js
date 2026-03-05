@@ -59,6 +59,7 @@ const deliveryController = {
 
     // Return updated profile with agent_id
     const [updated] = await deliveryAgentsModel.checkByUserId(userId);
+    console.log(updated);
     return sendSuccess(res, STATUS.OK, "Profile saved successfully", {
       profile: updated,
     });

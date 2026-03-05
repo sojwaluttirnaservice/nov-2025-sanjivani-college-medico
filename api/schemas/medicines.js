@@ -1,66 +1,83 @@
-const { INTEGER, STRING, TEXT, DATE } = require("sequelize");
+const { INTEGER, STRING, TEXT, DATE, BOOLEAN, FLOAT } = require("sequelize");
 const sequelize = require("../config/sequelize");
 
 const medicineSchema = sequelize.define(
-  "medicines", // Table name: Stores master list of medicines
+  "medicines",
   {
     id: {
       type: INTEGER,
       primaryKey: true,
       autoIncrement: true,
-      comment: "Primary key: Unique medicine ID",
     },
 
     name: {
       type: STRING,
       allowNull: false,
-      unique: true,
-      comment: "Name of the medicine",
     },
 
-    brand: {
+    manufacturer: {
       type: STRING,
       allowNull: true,
-      comment: "Brand or manufacturer name",
     },
 
-    category: {
+    type: {
       type: STRING,
       allowNull: true,
-      comment: "Type of medicine (e.g., Antibiotic, Painkiller, etc.)",
+      comment: "Tablet, Syrup, Capsule etc",
+    },
+
+    price: {
+      type: FLOAT,
+      allowNull: true,
+    },
+
+    pack_size: {
+      type: STRING,
+      allowNull: true,
+      comment: "Strip of 10 tablets etc",
+    },
+
+    composition1: {
+      type: STRING,
+      allowNull: true,
+    },
+
+    composition2: {
+      type: STRING,
+      allowNull: true,
+    },
+
+    is_discontinued: {
+      type: BOOLEAN,
+      defaultValue: false,
     },
 
     description: {
       type: TEXT,
       allowNull: true,
-      comment: "Short description or usage information of the medicine",
-    },
-
-    dosage_form: {
-      type: STRING,
-      allowNull: true,
-      comment: "Form of medicine (Tablet, Syrup, Injection, etc.)",
     },
 
     createdAt: {
       type: DATE,
       defaultValue: sequelize.literal("CURRENT_TIMESTAMP"),
-      allowNull: false,
-      comment: "Timestamp when the medicine was added",
     },
 
     updatedAt: {
       type: DATE,
-      defaultValue: sequelize.literal(
-        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
-      ),
-      allowNull: false,
-      comment: "Timestamp when the medicine was last updated",
+      defaultValue: sequelize.literal("CURRENT_TIMESTAMP"),
     },
   },
   {
     timestamps: true,
-  }
+    indexes: [
+      { fields: ["name"] },
+      { fields: ["composition1"] },
+      { fields: ["composition2"] },
+      { fields: ["manufacturer"] },
+      { fields: ["type"] },
+      { fields: ["is_discontinued"] },
+    ],
+  },
 );
 
 module.exports = medicineSchema;

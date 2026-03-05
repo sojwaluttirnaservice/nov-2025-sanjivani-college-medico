@@ -12,7 +12,7 @@ export const useInventory = (pharmacyId) => {
       const { data } = await instance.get(
         `/inventory?pharmacyId=${pharmacyId}`,
       );
-      return data;
+      return data?.inventory ?? [];
     },
     enabled: !!pharmacyId,
   });
@@ -34,13 +34,13 @@ export const useInventory = (pharmacyId) => {
     },
   });
 
-  // Simple: Get batches for a medicine
+  // Get batches for a medicine
   const getBatches = useCallback(
     async (medicineId) => {
       const { data } = await instance.get(
         `/inventory/batches?medicineId=${medicineId}&pharmacyId=${pharmacyId}`,
       );
-      return data;
+      return data?.batches ?? [];
     },
     [pharmacyId],
   );
@@ -51,7 +51,7 @@ export const useInventory = (pharmacyId) => {
       const { data } = await instance.get(
         `/inventory/alerts/low-stock?pharmacyId=${pharmacyId}`,
       );
-      return data;
+      return data?.alerts ?? [];
     },
     enabled: !!pharmacyId,
   });
@@ -61,18 +61,29 @@ export const useInventory = (pharmacyId) => {
     return data;
   }, []);
 
-  const checkAvailability = async (medicineId, quantity) => {
-    const { data } = await instance.get(
-      `/inventory/availability?medicineId=${medicineId}&quantity=${quantity}&pharmacyId=${pharmacyId}`,
-    );
-    return data;
-  };
+  // POST /inventory/sell — Deduct stock from a batch
+  const sellItem = useMutation({
+    mutationFn: async ({ batchId, quantity }) => {
+      const { data } = await instance.post("/inventory/sell", {
+        batchId,
+        quantity,
+      });
+      return data;
+    },
+    onSuccess: () => {
+      showSuccess("Stock sold successfully");
+      queryClient.invalidateQueries(["inventory", pharmacyId]);
+    },
+    onError: (error) => {
+      showError(error, "Failed to sell stock");
+    },
+  });
 
   return {
     inventoryQuery,
     lowStockQuery,
     addStock,
-    checkAvailability,
+    sellItem,
     getBatches,
     searchMedicines,
   };

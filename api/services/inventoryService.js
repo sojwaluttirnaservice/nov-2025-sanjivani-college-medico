@@ -1,6 +1,33 @@
 const inventoryModel = require("../models/inventory.model");
+const { query } = require("../utils/query/query");
 
 const inventoryService = {
+  // Seed default stock for a new pharmacy (called at signup)
+  seedDefaultInventory: async (pharmacyId) => {
+    // Pick first 5 medicines from the master medicines table
+    console.log(
+      `[InventoryService] Seeding default inventory for pharmacy ${pharmacyId}`,
+    );
+    const medicines = await query("SELECT id FROM medicines LIMIT 5");
+    if (!medicines || medicines.length === 0) return; // No medicines in DB yet, skip
+
+    const today = new Date();
+    const expiryDate = new Date(today);
+    expiryDate.setFullYear(expiryDate.getFullYear() + 2); // 2 years from now
+    const expiryStr = expiryDate.toISOString().split("T")[0];
+
+    for (const med of medicines) {
+      const batchNo = `SEED-${pharmacyId}-${med.id}-${Date.now()}`;
+      await inventoryModel.addStock({
+        pharmacyId,
+        medicineId: med.id,
+        quantity: 100,
+        price: 10.0,
+        expiryDate: expiryStr,
+        batch_no: batchNo,
+      });
+    }
+  },
   // Simple: Get list of valid batches for a medicine
   getBatches: async (medicineId, pharmacyId) => {
     return await inventoryModel.getBatchesByExpiry(medicineId, pharmacyId);

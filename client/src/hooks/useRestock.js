@@ -17,7 +17,7 @@ export const useRestock = (pharmacyId) => {
     queryKey: ["restock-requests", pharmacyId],
     queryFn: async () => {
       const { data } = await instance.get(`/restock?pharmacy_id=${pharmacyId}`);
-      return data?.data || [];
+      return data || [];
     },
     enabled: !!pharmacyId,
   });
@@ -27,7 +27,7 @@ export const useRestock = (pharmacyId) => {
     queryKey: ["delivery-agents-list"],
     queryFn: async () => {
       const { data } = await instance.get("/restock/agents");
-      return data?.data || [];
+      return data || [];
     },
   });
 
@@ -38,7 +38,7 @@ export const useRestock = (pharmacyId) => {
         ...requestData,
         pharmacy_id: pharmacyId,
       });
-      return data?.data;
+      return data;
     },
     onSuccess: () => {
       showSuccess("Restock request sent to delivery agent!");
@@ -53,7 +53,7 @@ export const useRestock = (pharmacyId) => {
   const cancelRestockRequest = useMutation({
     mutationFn: async (requestId) => {
       const { data } = await instance.patch(`/restock/${requestId}/cancel`);
-      return data?.data;
+      return data;
     },
     onSuccess: () => {
       showSuccess("Restock request cancelled.");
@@ -85,7 +85,7 @@ export const useAgentRestock = (agentId) => {
     queryKey: ["agent-restock-requests", agentId],
     queryFn: async () => {
       const { data } = await instance.get(`/restock/agent?agent_id=${agentId}`);
-      return data?.data || [];
+      return data || [];
     },
     enabled: !!agentId,
     refetchInterval: 30000, // auto-refresh every 30s
@@ -95,7 +95,7 @@ export const useAgentRestock = (agentId) => {
   const fulfillRequest = useMutation({
     mutationFn: async (requestId) => {
       const { data } = await instance.patch(`/restock/${requestId}/fulfill`);
-      return data?.data;
+      return data;
     },
     onSuccess: (data) => {
       showSuccess(

@@ -99,6 +99,7 @@ const restockRequestSchema = sequelize.define(
   },
   {
     timestamps: true,
+    indexes: [{ fields: ["status"] }],
   },
 );
 

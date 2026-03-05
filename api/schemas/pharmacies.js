@@ -76,7 +76,7 @@ const pharmacySchema = sequelize.define(
     updatedAt: {
       type: DATE,
       defaultValue: sequelize.literal(
-        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
       ),
       allowNull: false,
       comment: "Timestamp when the pharmacy record was last updated",
@@ -84,7 +84,12 @@ const pharmacySchema = sequelize.define(
   },
   {
     timestamps: true,
-  }
+    indexes: [
+      { fields: ["city"] },
+      { fields: ["pincode"] },
+      { fields: ["is_verified"] },
+    ],
+  },
 );
 
 // Association

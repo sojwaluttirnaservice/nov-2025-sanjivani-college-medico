@@ -45,8 +45,8 @@ const PharmacyRestockRequestsPage = () => {
                                 key={status}
                                 onClick={() => setFilterStatus(status)}
                                 className={`px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors ${filterStatus === status
-                                        ? 'bg-teal-600 text-white'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    ? 'bg-teal-600 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                             >
                                 {status}
@@ -85,7 +85,7 @@ const PharmacyRestockRequestsPage = () => {
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="font-semibold text-gray-900">{request.medicine_name}</span>
-                                                <span className="text-xs text-gray-400">({request.dosage_form})</span>
+                                                <span className="text-xs text-gray-400">({request.type || request.dosage_form})</span>
                                             </div>
                                             <div className="text-sm text-gray-600 flex flex-wrap gap-x-4 gap-y-1">
                                                 <span>

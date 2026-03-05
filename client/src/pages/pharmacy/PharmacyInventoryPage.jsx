@@ -166,7 +166,7 @@ const PharmacyInventoryPage = () => {
                                                             <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" title="Low Stock" />
                                                         )}
                                                         {item.medicine_name}
-                                                        <span className="text-xs text-gray-400 font-normal">({item.dosage_form})</span>
+                                                        <span className="text-xs text-gray-400 font-normal">({item.type || item.dosage_form})</span>
                                                     </div>
                                                     {selectedMedicineId === item.medicine_id && (
                                                         <div className="mt-2 pl-4 border-l-2 border-teal-100 text-sm text-gray-500">
@@ -402,7 +402,7 @@ const AddStockForm = ({ onSubmit, onCancel, searchMedicines }) => {
             if (medicineSearchTerm.length >= 2) {
                 try {
                     const results = await searchMedicines(medicineSearchTerm);
-                    setMedicineResults(results.data || []);
+                    setMedicineResults(results || []);
                     setShowResults(true);
                 } catch (error) {
                     console.error("Search failed", error);
@@ -417,7 +417,7 @@ const AddStockForm = ({ onSubmit, onCancel, searchMedicines }) => {
 
     const selectMedicine = (medicine) => {
         setValue('medicineId', medicine.id.toString(), { shouldValidate: true });
-        setSelectedMedicineName(`${medicine.name} (${medicine.dosage_form})`);
+        setSelectedMedicineName(`${medicine.name} (${medicine.type || medicine.dosage_form})`);
         setMedicineSearchTerm('');
         setShowResults(false);
     };
@@ -457,8 +457,8 @@ const AddStockForm = ({ onSubmit, onCancel, searchMedicines }) => {
                                         onClick={() => selectMedicine(med)}
                                         className="p-2 hover:bg-teal-50 cursor-pointer border-b border-gray-50 last:border-0"
                                     >
-                                        <p className="text-sm font-medium text-gray-900">{med.name} <span className="text-xs text-gray-500">({med.brand})</span></p>
-                                        <p className="text-xs text-gray-500">{med.dosage_form} • {med.strength}</p>
+                                        <p className="text-sm font-medium text-gray-900">{med.name} <span className="text-xs text-gray-500">({med.manufacturer || med.brand})</span></p>
+                                        <p className="text-xs text-gray-500">{med.type || med.dosage_form} • {med.pack_size || med.strength}</p>
                                     </div>
                                 ))}
                             </div>

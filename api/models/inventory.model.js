@@ -8,9 +8,9 @@ const inventoryModel = {
       SELECT 
         m.id as medicine_id, 
         m.name as medicine_name, 
-        m.brand, 
-        m.category, 
-        m.dosage_form,
+        m.manufacturer AS manufacturer, 
+        m.type, 
+        m.type AS dosage_form, -- Retained as alias temporarily if needed
         SUM(pi.quantity) as total_physical,
         0 as total_reserved,
         SUM(pi.quantity) as quantity, -- Available quantity
