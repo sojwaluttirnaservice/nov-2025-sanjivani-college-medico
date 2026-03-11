@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '../../redux/slices/authSlice'
 import { MapPin, Truck, Phone, ToggleLeft, ToggleRight, PackageSearch, CheckCircle, Loader, Clock } from 'lucide-react'
 import { useAgentRestock } from '../../hooks/useRestock'
+import { useDelivery } from '../../hooks/useDelivery'
 
 const DeliveryDashboardPage = () => {
     const navigate = useNavigate()
@@ -17,6 +18,13 @@ const DeliveryDashboardPage = () => {
     const { agentRestockQuery, fulfillRequest } = useAgentRestock(agentId)
     const { data: restockRequests = [], isLoading: loadingRestock } = agentRestockQuery
     const { mutate: fulfillMutate, isPending: fulfilling } = fulfillRequest
+
+    // Real stats from delivery history
+    const { historyQuery } = useDelivery()
+    const { data: history = [] } = historyQuery
+    const completedCount = history.length
+    const pendingCount = restockRequests.filter(r => r.status === 'pending').length
+    const totalEarnings = history.reduce((sum, item) => sum + parseFloat(item.total_amount || 0), 0)
 
     const agentDetails = {
         name: user?.name || "Delivery Agent",
@@ -69,21 +77,17 @@ const DeliveryDashboardPage = () => {
                     <div className="bg-linear-to-br from-teal-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg">
                         <h3 className="text-teal-100 font-medium mb-1">Total Earnings</h3>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-3xl font-bold">₹1,250</span>
-                            <span className="text-sm text-teal-200">/ today</span>
+                            <span className="text-3xl font-bold">₹{totalEarnings.toFixed(0)}</span>
+                            <span className="text-sm text-teal-200">/ all time</span>
                         </div>
                         <div className="mt-4 pt-4 border-t border-white/20 flex gap-4">
                             <div>
                                 <p className="text-xs text-teal-100">Completed</p>
-                                <p className="font-bold text-lg">8</p>
+                                <p className="font-bold text-lg">{completedCount}</p>
                             </div>
                             <div>
                                 <p className="text-xs text-teal-100">Pending</p>
-                                <p className="font-bold text-lg">2</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-teal-100">Hours</p>
-                                <p className="font-bold text-lg">4.5</p>
+                                <p className="font-bold text-lg">{pendingCount}</p>
                             </div>
                         </div>
                     </div>
@@ -94,7 +98,7 @@ const DeliveryDashboardPage = () => {
                             <MapPin className="w-5 h-5 text-teal-600" />
                             <span>{agentDetails.location}</span>
                         </div>
-                        <p className="text-xs text-gray-400 pl-8">Last updated: 5 mins ago</p>
+                        <p className="text-xs text-gray-400 pl-8">Update your location from Profile settings</p>
                     </div>
                 </div>
 

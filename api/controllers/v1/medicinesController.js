@@ -12,6 +12,10 @@ const medicinesController = {
     }
 
     const medicines = await medicinesModel.search(q);
+
+    // The query maps DB columns to expected frontend properties for backward compatibility
+    // DB: type -> dosage_form, manufacturer -> brand, pack_size -> strength
+
     return sendSuccess(res, STATUS.OK, "Medicines found", medicines);
   }),
 };

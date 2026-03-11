@@ -11,19 +11,34 @@ const LOW_STOCK_THRESHOLD = 30
 const PharmacyInventoryPage = () => {
     const user = useSelector(state => state.auth.user)
     const pharmacyId = user?.pharmacy_id
-    const { inventoryQuery, addStock, getBatches, searchMedicines } = useInventory(pharmacyId)
-    const { data: inventory, isLoading, error } = inventoryQuery
-    const { mutate: addStockMutate } = addStock;
 
-    const { agentsQuery, createRestockRequest } = useRestock(pharmacyId)
-    const { data: agents = [] } = agentsQuery
-    const { mutate: createRestockMutate, isPending: restockPending } = createRestockRequest
-
+    const [page, setPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [restockModal, setRestockModal] = useState(null); // { medicine_id, medicine_name }
     const [selectedMedicineId, setSelectedMedicineId] = useState(null);
     const [batches, setBatches] = useState([]);
     const [loadingBatches, setLoadingBatches] = useState(false);
+
+    // Debounce search term to avoid spamming the API
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+            setPage(1); // Reset to page 1 on new search
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    const { inventoryQuery, addStock, getBatches, searchMedicines } = useInventory(pharmacyId, page, debouncedSearchTerm);
+    const { data: inventoryData, isLoading, error } = inventoryQuery;
+    const inventory = inventoryData?.inventory || [];
+    const pagination = inventoryData?.pagination || null;
+    const { mutate: addStockMutate } = addStock;
+
+    const { agentsQuery, createRestockRequest } = useRestock(pharmacyId)
+    const { data: agents = [] } = agentsQuery
+    const { mutate: createRestockMutate, isPending: restockPending } = createRestockRequest
 
     // Fetch batches when selectedMedicineId changes
     useEffect(() => {
@@ -38,13 +53,7 @@ const PharmacyInventoryPage = () => {
         }
     }, [selectedMedicineId, getBatches]);
 
-    const [searchTerm, setSearchTerm] = useState('')
-
-    const filteredInventory = inventory?.filter(item =>
-        item.medicine_name.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || []
-
-    const lowStockCount = filteredInventory.filter(i => i.quantity <= LOW_STOCK_THRESHOLD).length
+    const lowStockCount = inventory.filter(i => i.quantity <= LOW_STOCK_THRESHOLD).length;
 
     return (
         <Container>
@@ -155,8 +164,8 @@ const PharmacyInventoryPage = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
-                                {filteredInventory.length > 0 ? (
-                                    filteredInventory.map((item) => {
+                                {inventory.length > 0 ? (
+                                    inventory.map((item) => {
                                         const isLowStock = item.quantity <= LOW_STOCK_THRESHOLD
                                         return (
                                             <tr key={item.id} className={`hover:bg-gray-50 transition-colors ${isLowStock ? 'bg-red-50/40' : ''}`}>
@@ -229,6 +238,34 @@ const PharmacyInventoryPage = () => {
                         </table>
                     )}
                 </div>
+
+                {/* Pagination Controls */}
+                {pagination && pagination.totalPages > 1 && (
+                    <div className="flex items-center justify-between border-t border-gray-100 mt-4 pt-4">
+                        <div className="text-sm text-gray-500">
+                            Showing <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> to <span className="font-medium">{Math.min(pagination.page * pagination.limit, pagination.totalItems)}</span> of <span className="font-medium">{pagination.totalItems}</span> results
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={pagination.page === 1}
+                                className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Previous
+                            </button>
+                            <span className="px-3 py-1 bg-gray-50 text-gray-700 text-sm font-medium rounded-md border border-gray-200">
+                                Page {pagination.page} of {pagination.totalPages}
+                            </span>
+                            <button
+                                onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                                disabled={pagination.page === pagination.totalPages}
+                                className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </Container>
     )

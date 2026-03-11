@@ -5,10 +5,6 @@ const { isAuthenticated } = require("../../../middlewares/auth");
 const medicinesRouter = getRouter();
 
 // Search medicines (Public or Protected? Protected seems safer for now)
-medicinesRouter.get(
-  "/search",
-  isAuthenticated,
-  medicinesController.searchMedicines,
-);
+medicinesRouter.get("/search", medicinesController.searchMedicines);
 
 module.exports = medicinesRouter;

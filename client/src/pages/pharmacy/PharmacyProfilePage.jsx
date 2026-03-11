@@ -75,7 +75,7 @@ const PharmacyProfilePage = () => {
             message.success(response?.message || "Profile saved successfully!");
             setIsEditing(false);
             // Invalidate query to refetch and update Redux
-            queryClient.invalidateQueries(["pharmacyProfile"]);
+            queryClient.invalidateQueries({ queryKey: ["pharmacyProfile"] });
         },
         onError: (error) => {
             console.error(error);

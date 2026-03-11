@@ -62,7 +62,7 @@ const orderItemSchema = sequelize.define(
     updatedAt: {
       type: DATE,
       defaultValue: sequelize.literal(
-        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
       ),
       allowNull: false,
       comment: "Timestamp when the record was last updated",
@@ -70,11 +70,14 @@ const orderItemSchema = sequelize.define(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Associations
 orderItemSchema.belongsTo(Order, { foreignKey: "order_id", as: "order" });
-orderItemSchema.belongsTo(Medicine, { foreignKey: "medicine_id", as: "medicine" });
+orderItemSchema.belongsTo(Medicine, {
+  foreignKey: "medicine_id",
+  as: "medicine",
+});
 
 module.exports = orderItemSchema;

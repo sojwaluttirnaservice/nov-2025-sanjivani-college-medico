@@ -5,14 +5,35 @@ const { sendSuccess, sendError } = require("../../utils/responses/ApiResponse");
 const STATUS = require("../../utils/status");
 
 const inventoryController = {
-  // GET /api/v1/inventory?pharmacyId=X — Get all inventory for a pharmacy
+  // GET /api/v1/inventory?pharmacyId=X&page=1&limit=50&search=... — Get all inventory for a pharmacy
   getInventory: asyncHandler(async (req, res) => {
     const pharmacyId = req.query.pharmacyId;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const search = req.query.search || "";
+    const offset = (page - 1) * limit;
+
     if (!pharmacyId) {
       return sendError(res, STATUS.BAD_REQUEST, "pharmacyId is required");
     }
-    const inventory = await inventoryModel.getInventoryByPharmacyId(pharmacyId);
-    return sendSuccess(res, STATUS.OK, "Inventory fetched", { inventory });
+
+    const { inventory, totalCount } =
+      await inventoryModel.getInventoryByPharmacyId(
+        pharmacyId,
+        offset,
+        limit,
+        search,
+      );
+
+    return sendSuccess(res, STATUS.OK, "Inventory fetched", {
+      inventory,
+      pagination: {
+        page,
+        limit,
+        totalItems: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+    });
   }),
 
   // POST /api/v1/inventory — Add a stock batch for a medicine

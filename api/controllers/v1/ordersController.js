@@ -52,15 +52,12 @@ const ordersController = {
       );
     }
 
-    const isValid = items.every(
-      (item) =>
-        item.medicine_id && item.batch_id && item.quantity && item.price,
-    );
+    const isValid = items.every((item) => item.medicine_id && item.quantity);
     if (!isValid) {
       return sendError(
         res,
         STATUS.BAD_REQUEST,
-        "Each item must have medicine_id, batch_id, quantity, and price.",
+        "Each item must have medicine_id and quantity.",
       );
     }
 

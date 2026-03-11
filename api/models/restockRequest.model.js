@@ -34,7 +34,7 @@ const restockRequestModel = {
         rr.updatedAt,
         m.id as medicine_id,
         m.name as medicine_name,
-        m.dosage_form,
+        m.type as dosage_form,
         da.id as agent_id,
         da.full_name as agent_name,
         da.phone as agent_phone
@@ -62,7 +62,7 @@ const restockRequestModel = {
         rr.delivery_agent_id,
         m.id as medicine_id,
         m.name as medicine_name,
-        m.dosage_form,
+        m.type as dosage_form,
         p.id as pharmacy_id,
         p.pharmacy_name,
         p.address as pharmacy_address,
@@ -83,7 +83,7 @@ const restockRequestModel = {
       SELECT 
         rr.*,
         m.name as medicine_name,
-        m.dosage_form,
+        m.type as dosage_form,
         p.pharmacy_name,
         p.address as pharmacy_address,
         da.full_name as agent_name

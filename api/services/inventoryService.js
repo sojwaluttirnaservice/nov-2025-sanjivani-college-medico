@@ -4,33 +4,45 @@ const { query } = require("../utils/query/query");
 const inventoryService = {
   // Seed default stock for a new pharmacy (called at signup)
   seedDefaultInventory: async (pharmacyId) => {
-    // Pick first 5 medicines from the master medicines table
     console.log(
-      `[InventoryService] Seeding default inventory for pharmacy ${pharmacyId}`,
+      `[InventoryService] Seeding ALL medicines inventory for pharmacy ${pharmacyId}...`,
     );
-    const medicines = await query("SELECT id FROM medicines LIMIT 5");
-    if (!medicines || medicines.length === 0) return; // No medicines in DB yet, skip
 
-    const today = new Date();
-    const expiryDate = new Date(today);
-    expiryDate.setFullYear(expiryDate.getFullYear() + 2); // 2 years from now
-    const expiryStr = expiryDate.toISOString().split("T")[0];
+    try {
+      // Mass-seed all medicines using a single efficient database query
+      const sql = `
+        INSERT IGNORE INTO pharmacy_inventory 
+        (pharmacy_id, medicine_id, quantity, price, expiry_date)
+        SELECT 
+          ?, 
+          id, 
+          100, 
+          price, 
+          DATE_ADD(CURRENT_DATE, INTERVAL 2 YEAR)
+        FROM medicines
+      `;
 
-    for (const med of medicines) {
-      const batchNo = `SEED-${pharmacyId}-${med.id}-${Date.now()}`;
-      await inventoryModel.addStock({
-        pharmacyId,
-        medicineId: med.id,
-        quantity: 100,
-        price: 10.0,
-        expiryDate: expiryStr,
-        batch_no: batchNo,
-      });
+      const result = await query(sql, [pharmacyId]);
+      console.log(
+        `[InventoryService] Successfully seeded all medicines for pharmacy ${pharmacyId}. Affected rows: ${result.affectedRows}`,
+      );
+    } catch (err) {
+      console.error(
+        `[InventoryService] Error while mass-seeding inventory for pharmacy ${pharmacyId}:`,
+        err,
+      );
+      throw err;
     }
   },
   // Simple: Get list of valid batches for a medicine
   getBatches: async (medicineId, pharmacyId) => {
     return await inventoryModel.getBatchesByExpiry(medicineId, pharmacyId);
+  },
+
+  // Auto-pick best batch for a medicine (for simplified flows)
+  getBestBatch: async (medicineId, pharmacyId) => {
+    const rows = await inventoryModel.getBestBatch(medicineId, pharmacyId);
+    return rows && rows.length > 0 ? rows[0] : null;
   },
 
   // Simple: Manually deduct from a specific batch (Pharmacist selects batch)

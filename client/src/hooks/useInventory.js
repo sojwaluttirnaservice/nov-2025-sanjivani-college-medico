@@ -3,16 +3,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { instance } from "../utils/instance";
 import { showError, showSuccess } from "../utils/error";
 
-export const useInventory = (pharmacyId) => {
+export const useInventory = (pharmacyId, page = 1, search = "") => {
   const queryClient = useQueryClient();
 
   const inventoryQuery = useQuery({
-    queryKey: ["inventory", pharmacyId],
+    queryKey: ["inventory", pharmacyId, page, search],
     queryFn: async () => {
       const { data } = await instance.get(
-        `/inventory?pharmacyId=${pharmacyId}`,
+        `/inventory?pharmacyId=${pharmacyId}&page=${page}&limit=50&search=${encodeURIComponent(search)}`,
       );
-      return data?.inventory ?? [];
+      return data;
     },
     enabled: !!pharmacyId,
   });
@@ -27,7 +27,7 @@ export const useInventory = (pharmacyId) => {
     },
     onSuccess: () => {
       showSuccess("Stock added successfully");
-      queryClient.invalidateQueries(["inventory", pharmacyId]);
+      queryClient.invalidateQueries({ queryKey: ["inventory", pharmacyId] });
     },
     onError: (error) => {
       showError(error, "Failed to add stock");
@@ -53,7 +53,10 @@ export const useInventory = (pharmacyId) => {
       );
       return data?.alerts ?? [];
     },
+    // Low-stock query — runs once, caches for 5 minutes to avoid hammering DB
     enabled: !!pharmacyId,
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: false,
   });
 
   const searchMedicines = useCallback(async (query) => {
@@ -72,7 +75,7 @@ export const useInventory = (pharmacyId) => {
     },
     onSuccess: () => {
       showSuccess("Stock sold successfully");
-      queryClient.invalidateQueries(["inventory", pharmacyId]);
+      queryClient.invalidateQueries({ queryKey: ["inventory", pharmacyId] });
     },
     onError: (error) => {
       showError(error, "Failed to sell stock");

@@ -59,7 +59,7 @@ const ordersModel = {
         oi.unit_price,
         oi.subtotal,
         m.name as medicine_name, 
-        m.brand
+        m.manufacturer as brand
       FROM order_items oi
       JOIN medicines m ON oi.medicine_id = m.id
       WHERE oi.order_id = ?

@@ -42,7 +42,9 @@ export const useRestock = (pharmacyId) => {
     },
     onSuccess: () => {
       showSuccess("Restock request sent to delivery agent!");
-      queryClient.invalidateQueries(["restock-requests", pharmacyId]);
+      queryClient.invalidateQueries({
+        queryKey: ["restock-requests", pharmacyId],
+      });
     },
     onError: (error) => {
       showError(error, "Failed to create restock request");
@@ -57,7 +59,9 @@ export const useRestock = (pharmacyId) => {
     },
     onSuccess: () => {
       showSuccess("Restock request cancelled.");
-      queryClient.invalidateQueries(["restock-requests", pharmacyId]);
+      queryClient.invalidateQueries({
+        queryKey: ["restock-requests", pharmacyId],
+      });
     },
     onError: (error) => {
       showError(error, "Failed to cancel restock request");
@@ -101,7 +105,9 @@ export const useAgentRestock = (agentId) => {
       showSuccess(
         `Fulfilled! Stock added to pharmacy (Batch: ${data.batchNo})`,
       );
-      queryClient.invalidateQueries(["agent-restock-requests", agentId]);
+      queryClient.invalidateQueries({
+        queryKey: ["agent-restock-requests", agentId],
+      });
     },
     onError: (error) => {
       showError(error, "Failed to fulfill restock request");

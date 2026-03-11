@@ -32,8 +32,8 @@ export const useOrders = (pharmacyId) => {
     },
     onSuccess: () => {
       showSuccess("Order status updated");
-      queryClient.invalidateQueries(["orders", pharmacyId]);
-      queryClient.invalidateQueries(["order-stats", pharmacyId]);
+      queryClient.invalidateQueries({ queryKey: ["orders", pharmacyId] });
+      queryClient.invalidateQueries({ queryKey: ["order-stats", pharmacyId] });
     },
     onError: (error) => {
       showError(error, "Failed to update order");
@@ -47,9 +47,11 @@ export const useOrders = (pharmacyId) => {
     },
     onSuccess: () => {
       showSuccess("Order created successfully");
-      queryClient.invalidateQueries(["orders", pharmacyId]);
-      queryClient.invalidateQueries(["order-stats", pharmacyId]);
-      queryClient.invalidateQueries(["prescription-requests", pharmacyId]);
+      queryClient.invalidateQueries({ queryKey: ["orders", pharmacyId] });
+      queryClient.invalidateQueries({ queryKey: ["order-stats", pharmacyId] });
+      queryClient.invalidateQueries({
+        queryKey: ["prescription-requests", pharmacyId],
+      });
     },
     onError: (error) => {
       showError(error, "Failed to create order");
@@ -63,8 +65,8 @@ export const useOrders = (pharmacyId) => {
     },
     onSuccess: () => {
       showSuccess("Order marked as delivered");
-      queryClient.invalidateQueries(["orders", pharmacyId]);
-      queryClient.invalidateQueries(["order-stats", pharmacyId]);
+      queryClient.invalidateQueries({ queryKey: ["orders", pharmacyId] });
+      queryClient.invalidateQueries({ queryKey: ["order-stats", pharmacyId] });
     },
     onError: (error) => {
       showError(error, "Failed to update order");
@@ -78,8 +80,8 @@ export const useOrders = (pharmacyId) => {
     },
     onSuccess: () => {
       showSuccess("Order rejected and stock restored");
-      queryClient.invalidateQueries(["orders", pharmacyId]);
-      queryClient.invalidateQueries(["order-stats", pharmacyId]);
+      queryClient.invalidateQueries({ queryKey: ["orders", pharmacyId] });
+      queryClient.invalidateQueries({ queryKey: ["order-stats", pharmacyId] });
     },
     onError: (error) => {
       showError(error, "Failed to reject order");

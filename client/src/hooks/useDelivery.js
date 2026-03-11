@@ -52,8 +52,8 @@ export const useDelivery = () => {
     onSuccess: () => {
       showSuccess("Delivery completed successfully!");
       // Invalidate both active and history queries
-      queryClient.invalidateQueries(["active-deliveries"]);
-      queryClient.invalidateQueries(["delivery-history"]);
+      queryClient.invalidateQueries({ queryKey: ["active-deliveries"] });
+      queryClient.invalidateQueries({ queryKey: ["delivery-history"] });
     },
     onError: (error) => {
       showError(error, "Failed to update delivery status");

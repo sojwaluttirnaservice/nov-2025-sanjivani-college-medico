@@ -28,7 +28,7 @@ const restockService = {
       throw new Error("Cannot fulfill a cancelled request");
     }
 
-    // 2. Generate batch number for the new stock
+    // 2. Generate batch number for the new stock (Optional for simple flow)
     const batchNo =
       "RESTOCK-" + requestId + "-" + Date.now().toString().slice(-6);
 
@@ -39,14 +39,29 @@ const restockService = {
           .toISOString()
           .split("T")[0]; // 1 year default
 
-    await inventoryModel.addStock({
-      pharmacyId: request.pharmacy_id,
-      medicineId: request.medicine_id,
-      quantity: request.quantity_requested,
-      price: request.price || 0,
-      expiryDate,
-      batch_no: batchNo,
-    });
+    // Check if the pharmacy already has this medicine in their inventory
+    const [existingStock] = await inventoryModel.getBatchesByExpiry(
+      request.medicine_id,
+      request.pharmacy_id,
+    );
+
+    if (existingStock) {
+      // Update existing stock
+      await inventoryModel.updateQuantity(
+        existingStock.id,
+        existingStock.quantity + request.quantity_requested,
+      );
+    } else {
+      // Add new record to local pharmacy inventory
+      await inventoryModel.addStock({
+        pharmacyId: request.pharmacy_id,
+        medicineId: request.medicine_id,
+        quantity: request.quantity_requested,
+        price: request.price || 0,
+        expiryDate,
+        batch_no: batchNo,
+      });
+    }
 
     // 4. Update request status to fulfilled
     await restockRequestModel.updateStatus(requestId, "fulfilled", batchNo);
