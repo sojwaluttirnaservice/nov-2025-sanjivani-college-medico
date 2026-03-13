@@ -1,4 +1,4 @@
-const { query } = require("../utils/query/query");
+const { query, queryOne } = require("../utils/query/query");
 
 const ordersModel = {
   // Get all orders for a pharmacy
@@ -65,7 +65,7 @@ const ordersModel = {
       WHERE oi.order_id = ?
     `;
 
-    const [order] = await query(orderSql, [orderId]);
+    const order = await queryOne(orderSql, [orderId]);
     if (!order) return null;
 
     const items = await query(itemsSql, [orderId]);
@@ -135,8 +135,7 @@ const ordersModel = {
       FROM orders
       WHERE pharmacy_id = ?
     `;
-    const results = await query(sql, [pharmacyId]);
-    return results[0];
+    return queryOne(sql, [pharmacyId]);
   },
 };
 

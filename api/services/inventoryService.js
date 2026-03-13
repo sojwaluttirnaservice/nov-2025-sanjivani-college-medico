@@ -1,5 +1,5 @@
 const inventoryModel = require("../models/inventory.model");
-const { query } = require("../utils/query/query");
+const { query, queryOne } = require("../utils/query/query");
 
 const inventoryService = {
   // Seed default stock for a new pharmacy (called at signup)

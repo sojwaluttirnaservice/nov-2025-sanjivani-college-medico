@@ -1,4 +1,4 @@
-const { query } = require("../utils/query/query");
+const { query, queryOne } = require("../utils/query/query");
 
 const medicinesModel = {
   search: async (searchTerm) => {
@@ -20,10 +20,9 @@ const medicinesModel = {
   },
 
   // Get medicine by ID
-  getById: async (id) => {
+  getById: (id) => {
     const sql = `SELECT * FROM medicines WHERE id = ?`;
-    const [result] = await query(sql, [id]);
-    return result;
+    return queryOne(sql, [id]);
   },
 
   // Create new medicine (for handling unknown/analyzed medicines)
