@@ -8,23 +8,34 @@ const STATUS = require("../../utils/status");
 const restockController = {
   // POST /api/v1/restock — Pharmacy creates a restock request
   createRequest: asyncHandler(async (req, res) => {
-    let delivery_agent_id = req.body.delivery_agent_id || null;
+    let delivery_agent_id = req.body.delivery_agent_id;
 
-    if (!delivery_agent_id) {
-      const [pharmacyRows] = await pharmaciesModel.getById(
-        req.body.pharmacy_id,
+    // Robust check for invalid values (null, undefined, empty string, or non-numeric strings)
+    // We use Number() to check if it's a valid number.
+    const isInvalidId =
+      !delivery_agent_id ||
+      delivery_agent_id === "null" ||
+      delivery_agent_id === "undefined" ||
+      delivery_agent_id === "" ||
+      isNaN(Number(delivery_agent_id));
+
+    if (isInvalidId) {
+      console.log(
+        `[Restock] Invalid delivery_agent_id received: "${delivery_agent_id}". Falling back to pharmacy default.`,
       );
+      const pharmacyRows = await pharmaciesModel.getById(req.body.pharmacy_id);
       if (pharmacyRows && pharmacyRows.default_delivery_agent_id) {
         delivery_agent_id = pharmacyRows.default_delivery_agent_id;
-      } else if (
-        pharmacyRows &&
-        pharmacyRows.length > 0 &&
-        pharmacyRows[0].default_delivery_agent_id
-      ) {
-        // handle array return from query
-        delivery_agent_id = pharmacyRows[0].default_delivery_agent_id;
+      } else {
+        delivery_agent_id = null;
       }
+    } else {
+      delivery_agent_id = Number(delivery_agent_id);
     }
+
+    console.log(
+      `[Restock] Creating request: pharmacy=${req.body.pharmacy_id}, agent=${delivery_agent_id}`,
+    );
 
     const data = {
       pharmacy_id: req.body.pharmacy_id,

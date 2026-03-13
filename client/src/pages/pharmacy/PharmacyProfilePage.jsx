@@ -149,7 +149,11 @@ const PharmacyProfilePage = () => {
     }
 
     // Use Redux profile as primary source, fallback to query data
-    const currentProfile = pharmacyProfile || profileData;
+    // Robust check: if pharmacyProfile is missing critical fields (like default_delivery_agent_id) 
+    // that profileData has, prefer profileData.
+    const currentProfile = (profileData?.default_delivery_agent_id && !pharmacyProfile?.default_delivery_agent_id)
+        ? profileData
+        : (pharmacyProfile || profileData);
     const hasProfile = !!currentProfile;
 
     // Determine if we should show the form (Edit mode or No Profile) or View mode

@@ -21,7 +21,7 @@ const pharmaciesModel = {
             WHERE user_id = ?
             LIMIT 1
         `;
-    return query(q, [userId]);
+    return query(q, [userId]).then((res) => res[0]);
   },
 
   /**
@@ -90,7 +90,7 @@ const pharmaciesModel = {
             WHERE id = ?
             LIMIT 1
         `;
-    return query(q, [pharmacyId]);
+    return query(q, [pharmacyId]).then((res) => res[0]);
   },
 
   /**
@@ -116,7 +116,7 @@ const pharmaciesModel = {
             WHERE p.user_id = ?
             LIMIT 1
         `;
-    return query(q, [userId]);
+    return query(q, [userId]).then((res) => res[0]);
   },
 
   /**

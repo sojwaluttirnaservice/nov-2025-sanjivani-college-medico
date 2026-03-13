@@ -32,7 +32,7 @@ const prescriptionAnalysisModel = {
       LIMIT 1
       `,
       [prescriptionId],
-    );
+    ).then((res) => res[0]);
   },
 
   getAllByPrescriptionId: (prescriptionId) => {

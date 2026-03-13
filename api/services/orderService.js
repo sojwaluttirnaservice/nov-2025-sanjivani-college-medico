@@ -41,12 +41,26 @@ const orderService = {
       }
 
       // Create Order Record
+      // Fetch pharmacy's default delivery agent if not provided
+      let delivery_agent_id = null;
+      const pharmacy = await require("../models/pharmacies.model").getById(
+        pharmacy_id,
+      );
+      if (pharmacy) {
+        delivery_agent_id = pharmacy.default_delivery_agent_id;
+      }
+      console.log(
+        `[OrderService] Assigning agent ${delivery_agent_id} for pharmacy ${pharmacy_id}`,
+      );
+
       const orderResult = await ordersModel.create({
         customer_id,
         pharmacy_id,
         prescription_id,
         total_amount: totalAmount,
         payment_mode: "CASH",
+        delivery_address: "Direct Delivery", // Or fetch from customer
+        delivery_agent_id: delivery_agent_id,
       });
 
       const orderId = orderResult.insertId;

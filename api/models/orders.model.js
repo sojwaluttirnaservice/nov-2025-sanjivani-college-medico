@@ -74,6 +74,10 @@ const ordersModel = {
 
   // Update order status
   updateStatus: (orderId, status) => {
+    if (status === "DELIVERED") {
+      const sql = `UPDATE orders SET order_status = ?, delivered_at = NOW() WHERE id = ?`;
+      return query(sql, [status, orderId]);
+    }
     const sql = `UPDATE orders SET order_status = ? WHERE id = ?`;
     return query(sql, [status, orderId]);
   },
@@ -89,16 +93,18 @@ const ordersModel = {
     const q = `
         INSERT INTO orders (
             customer_id, pharmacy_id, prescription_id, total_amount, 
-            payment_status, order_status
-        ) VALUES (?, ?, ?, ?, ?, ?)
+            payment_status, order_status, delivery_address, delivery_agent_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     return query(q, [
       data.customer_id,
       data.pharmacy_id,
       data.prescription_id || null,
       data.total_amount,
-      "PENDING",
-      "CONFIRMED",
+      data.payment_status || "PENDING",
+      data.order_status || "CONFIRMED",
+      data.delivery_address || "Pick up at Store",
+      data.delivery_agent_id || null,
     ]);
   },
 

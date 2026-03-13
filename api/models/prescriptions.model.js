@@ -28,7 +28,7 @@ const prescriptionsModel = {
       LIMIT 1
       `,
       [id],
-    );
+    ).then((res) => res[0]);
   },
 
   getByCustomer: (customerId) => {

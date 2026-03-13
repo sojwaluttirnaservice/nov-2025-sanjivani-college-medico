@@ -92,7 +92,10 @@ const usersController = {
       if (customer) extraId.customer_id = customer.customer_id;
     } else if (existingUser.role === APP_ROLES.PHARMACY) {
       const [pharmacy] = await pharmaciesModel.checkByUserId(existingUser.id);
-      if (pharmacy) extraId.pharmacy_id = pharmacy.pharmacy_id;
+      if (pharmacy) {
+        extraId.pharmacy_id = pharmacy.pharmacy_id;
+        extraId.default_delivery_agent_id = pharmacy.default_delivery_agent_id;
+      }
     } else if (existingUser.role === APP_ROLES.DELIVERY_AGENT) {
       const [agent] = await deliveryAgentsModel.checkByUserId(existingUser.id);
       if (agent) extraId.agent_id = agent.agent_id;
