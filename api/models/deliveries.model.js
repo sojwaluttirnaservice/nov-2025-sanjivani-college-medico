@@ -1,4 +1,4 @@
-const { query } = require("../utils/query/query");
+const { query, queryOne } = require("../utils/query/query");
 
 // Since there is no direct assignment table yet, we will fetch orders
 // that are likely relevant for delivery (e.g., status='ready' or 'out_for_delivery')

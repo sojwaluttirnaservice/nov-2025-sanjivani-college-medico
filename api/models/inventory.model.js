@@ -1,4 +1,4 @@
-const { query } = require("../utils/query/query");
+const { query, queryOne } = require("../utils/query/query");
 
 const inventoryModel = {
   // Get all inventory items for a specific pharmacy, aggregated by medicine
@@ -113,9 +113,7 @@ const inventoryModel = {
 
   // Simple: Get single batch details
   getBatchById: (id) => {
-    return query("SELECT * FROM pharmacy_inventory WHERE id = ?", [id]).then(
-      (res) => res[0],
-    );
+    return queryOne("SELECT * FROM pharmacy_inventory WHERE id = ?", [id]);
   },
 
   // Simple: Update physical quantity directly

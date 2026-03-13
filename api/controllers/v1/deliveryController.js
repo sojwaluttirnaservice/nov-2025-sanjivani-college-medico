@@ -1,6 +1,6 @@
 const deliveriesModel = require("../../models/deliveries.model");
 const deliveryAgentsModel = require("../../models/deliveryAgents.model");
-const { query } = require("../../utils/query/query");
+const { query, queryOne } = require("../../utils/query/query");
 const asyncHandler = require("../../utils/asyncHandler");
 const { sendSuccess, sendError } = require("../../utils/responses/ApiResponse");
 const STATUS = require("../../utils/status");
