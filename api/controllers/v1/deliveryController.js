@@ -19,9 +19,7 @@ const deliveryController = {
   // GET /deliveries/profile — fetch agent's own profile
   getProfile: asyncHandler(async (req, res) => {
     const userId = req.user.id;
-    const profileArray = await deliveryAgentsModel.getWithUser(userId);
-    const profile =
-      profileArray && profileArray.length > 0 ? profileArray[0] : null;
+    const profile = await deliveryAgentsModel.getWithUser(userId);
     return sendSuccess(res, STATUS.OK, "Agent profile fetched", profile);
   }),
 
@@ -39,7 +37,7 @@ const deliveryController = {
     }
 
     // Check if profile exists
-    const [existing] = await deliveryAgentsModel.checkByUserId(userId);
+    const existing = await deliveryAgentsModel.checkByUserId(userId);
 
     if (existing) {
       // Update existing profile
@@ -58,7 +56,7 @@ const deliveryController = {
     }
 
     // Return updated profile with agent_id
-    const [updated] = await deliveryAgentsModel.checkByUserId(userId);
+    const updated = await deliveryAgentsModel.checkByUserId(userId);
     console.log(updated);
     return sendSuccess(res, STATUS.OK, "Profile saved successfully", {
       profile: updated,

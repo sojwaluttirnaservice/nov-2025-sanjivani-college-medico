@@ -23,16 +23,15 @@ const prescriptionAnalysisModel = {
   },
 
   getLatestByPrescriptionId: (prescriptionId) => {
-    return query(
+    return queryOne(
       `
       SELECT *
       FROM prescription_analysis
       WHERE prescription_id = ?
       ORDER BY createdAt DESC
-      LIMIT 1
       `,
       [prescriptionId],
-    ).then((res) => res[0]);
+    );
   },
 
   getAllByPrescriptionId: (prescriptionId) => {

@@ -1,17 +1,27 @@
 import React from 'react'
 import Container from '../../components/utils/Container'
-import { CheckCircle, Phone, MapPin, Navigation, Loader } from 'lucide-react'
+import { CheckCircle, Phone, MapPin, Navigation, Loader, RefreshCw } from 'lucide-react'
 import { useDelivery } from '../../hooks/useDelivery'
 import { CheckCircle2 } from 'lucide-react'
 
 const DeliveryActivePage = () => {
     const { activeDeliveriesQuery, markDelivered } = useDelivery()
-    const { data: deliveries, isLoading, error } = activeDeliveriesQuery
+    const { data: deliveries, isLoading, error, refetch } = activeDeliveriesQuery
 
     return (
         <Container>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Current Deliveries</h2>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-gray-900">Current Deliveries</h2>
+                    <button
+                        onClick={() => refetch()}
+                        disabled={isLoading}
+                        className="p-2 text-gray-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors border border-gray-100"
+                        title="Refresh list"
+                    >
+                        <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+                    </button>
+                </div>
 
                 {isLoading ? (
                     <div className="flex justify-center items-center h-48">
@@ -108,8 +118,8 @@ const ConfirmButton = ({ onConfirm, isLoading, label }) => {
             }}
             disabled={isLoading}
             className={`flex-1 py-2.5 border font-medium rounded-lg transition-colors disabled:opacity-50 ${confirming
-                    ? 'bg-red-50 border-red-200 text-red-600 animate-pulse'
-                    : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                ? 'bg-red-50 border-red-200 text-red-600 animate-pulse'
+                : 'border-gray-200 hover:bg-gray-50 text-gray-700'
                 }`}
         >
             {isLoading ? 'Updating...' : confirming ? 'Click to Confirm' : label}
