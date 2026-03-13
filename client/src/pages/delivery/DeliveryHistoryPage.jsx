@@ -1,18 +1,28 @@
 import React from 'react'
 import Container from '../../components/utils/Container'
-import { Loader, History, Package } from 'lucide-react'
+import { Loader, History, Package, RefreshCw } from 'lucide-react'
 import { useDelivery } from '../../hooks/useDelivery'
 
 const DeliveryHistoryPage = () => {
     const { historyQuery } = useDelivery()
-    const { data: history, isLoading, error } = historyQuery
+    const { data: history, isLoading, error, refetch } = historyQuery
 
     return (
         <Container>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center gap-3 mb-6">
-                    <History className="w-5 h-5 text-teal-600" />
-                    <h2 className="text-xl font-bold text-gray-900">Delivery History</h2>
+                <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-3">
+                        <History className="w-5 h-5 text-teal-600" />
+                        <h2 className="text-xl font-bold text-gray-900">Delivery History</h2>
+                    </div>
+                    <button
+                        onClick={() => refetch()}
+                        disabled={isLoading}
+                        className="p-2 text-gray-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors border border-gray-100"
+                        title="Refresh history"
+                    >
+                        <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+                    </button>
                 </div>
 
                 {isLoading ? (

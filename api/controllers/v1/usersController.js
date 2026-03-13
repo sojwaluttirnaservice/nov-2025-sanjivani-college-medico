@@ -44,7 +44,7 @@ const usersController = {
     }
 
     // Check if user already exists
-    const [existingUser] = await usersModel.getUserByEmail(email);
+    const existingUser = await usersModel.getUserByEmail(email);
     if (existingUser) {
       return sendError(
         res,
@@ -67,7 +67,7 @@ const usersController = {
       return sendError(res, STATUS.BAD_REQUEST, validationError);
     }
 
-    const [existingUser] = await usersModel.getUserByEmail(email);
+    const existingUser = await usersModel.getUserByEmail(email);
 
     if (!existingUser) {
       return sendError(res, STATUS.NOT_FOUND, "User not found.");
@@ -88,16 +88,16 @@ const usersController = {
 
     let extraId = {};
     if (existingUser.role === APP_ROLES.CUSTOMER) {
-      const [customer] = await customersModel.checkByUserId(existingUser.id);
+      const customer = await customersModel.checkByUserId(existingUser.id);
       if (customer) extraId.customer_id = customer.customer_id;
     } else if (existingUser.role === APP_ROLES.PHARMACY) {
-      const [pharmacy] = await pharmaciesModel.checkByUserId(existingUser.id);
+      const pharmacy = await pharmaciesModel.checkByUserId(existingUser.id);
       if (pharmacy) {
         extraId.pharmacy_id = pharmacy.pharmacy_id;
         extraId.default_delivery_agent_id = pharmacy.default_delivery_agent_id;
       }
     } else if (existingUser.role === APP_ROLES.DELIVERY_AGENT) {
-      const [agent] = await deliveryAgentsModel.checkByUserId(existingUser.id);
+      const agent = await deliveryAgentsModel.checkByUserId(existingUser.id);
       if (agent) extraId.agent_id = agent.agent_id;
     }
 
@@ -135,9 +135,8 @@ const usersController = {
       return sendError(res, STATUS.FORBIDDEN, "Role not supported");
     }
 
-    // Handle empty result - Return null profile instead of 404
-    // This allows the frontend to show an empty "create profile" form
-    const userProfile = user && user.length > 0 ? user[0] : null;
+    // Handle result - Standardized models now return a single object or null
+    const userProfile = user || null;
 
     return sendSuccess(res, STATUS.OK, "User Fetched Successfully", {
       user: userProfile,

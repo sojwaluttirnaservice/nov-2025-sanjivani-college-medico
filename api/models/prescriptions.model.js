@@ -19,16 +19,15 @@ const prescriptionsModel = {
   },
 
   getById: (id) => {
-    return query(
+    return queryOne(
       `
       SELECT p.*, c.full_name as customer_name, c.phone as customer_phone
       FROM prescriptions p
       JOIN customers c ON p.customer_id = c.id
       WHERE p.id = ?
-      LIMIT 1
       `,
       [id],
-    ).then((res) => res[0]);
+    );
   },
 
   getByCustomer: (customerId) => {
