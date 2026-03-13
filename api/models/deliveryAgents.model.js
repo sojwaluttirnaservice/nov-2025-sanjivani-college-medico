@@ -69,6 +69,27 @@ const deliveryAgentsModel = {
       agentId,
     ]);
   },
+
+  /**
+   * Get all delivery agents
+   */
+  getAll: () => {
+    const q = `
+      SELECT
+        da.id AS agent_id,
+        da.full_name,
+        da.phone,
+        da.vehicle_number,
+        da.is_available,
+        da.current_location,
+        u.id AS user_id,
+        u.email
+      FROM delivery_agents da
+      INNER JOIN users u ON u.id = da.user_id
+      ORDER BY da.full_name ASC
+    `;
+    return query(q);
+  },
 };
 
 module.exports = deliveryAgentsModel;

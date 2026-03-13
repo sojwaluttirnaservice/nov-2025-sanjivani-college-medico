@@ -66,6 +66,12 @@ const pharmacySchema = sequelize.define(
       comment: "Indicates whether the pharmacy is verified by admin",
     },
 
+    default_delivery_agent_id: {
+      type: INTEGER,
+      allowNull: true,
+      comment: "ID of the default delivery agent preferred by the pharmacy",
+    },
+
     createdAt: {
       type: DATE,
       defaultValue: sequelize.literal("CURRENT_TIMESTAMP"),

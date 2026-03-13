@@ -1,5 +1,6 @@
 const restockService = require("../../services/restockService");
 const restockRequestModel = require("../../models/restockRequest.model");
+const pharmaciesModel = require("../../models/pharmacies.model");
 const asyncHandler = require("../../utils/asyncHandler");
 const { sendSuccess, sendError } = require("../../utils/responses/ApiResponse");
 const STATUS = require("../../utils/status");
@@ -7,10 +8,28 @@ const STATUS = require("../../utils/status");
 const restockController = {
   // POST /api/v1/restock — Pharmacy creates a restock request
   createRequest: asyncHandler(async (req, res) => {
+    let delivery_agent_id = req.body.delivery_agent_id || null;
+
+    if (!delivery_agent_id) {
+      const [pharmacyRows] = await pharmaciesModel.getById(
+        req.body.pharmacy_id,
+      );
+      if (pharmacyRows && pharmacyRows.default_delivery_agent_id) {
+        delivery_agent_id = pharmacyRows.default_delivery_agent_id;
+      } else if (
+        pharmacyRows &&
+        pharmacyRows.length > 0 &&
+        pharmacyRows[0].default_delivery_agent_id
+      ) {
+        // handle array return from query
+        delivery_agent_id = pharmacyRows[0].default_delivery_agent_id;
+      }
+    }
+
     const data = {
       pharmacy_id: req.body.pharmacy_id,
       medicine_id: req.body.medicine_id,
-      delivery_agent_id: req.body.delivery_agent_id || null,
+      delivery_agent_id: delivery_agent_id,
       quantity_requested: req.body.quantity_requested,
       price: req.body.price || 0,
       expiry_date: req.body.expiry_date || null,

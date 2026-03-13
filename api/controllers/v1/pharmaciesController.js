@@ -13,8 +13,15 @@ const pharmaciesController = {
   upsertPharmacy: asyncHandler(async (req, res) => {
     const userId = req.user.id;
 
-    const { pharmacy_name, license_no, contact_no, address, city, pincode } =
-      req.body;
+    const {
+      pharmacy_name,
+      license_no,
+      contact_no,
+      address,
+      city,
+      pincode,
+      default_delivery_agent_id,
+    } = req.body;
 
     // Basic validation
     if (!pharmacy_name || !license_no || !contact_no || !address) {
@@ -37,6 +44,7 @@ const pharmaciesController = {
       address,
       city: city || null,
       pincode: pincode || null,
+      default_delivery_agent_id: default_delivery_agent_id || null,
     };
 
     // UPDATE

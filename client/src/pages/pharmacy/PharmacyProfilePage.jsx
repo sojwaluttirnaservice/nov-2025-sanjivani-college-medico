@@ -6,7 +6,7 @@ import {
     selectPharmacyProfile,
     setPharmacyProfile,
 } from "../../redux/slices/pharmacySlice";
-import { User, Mail, MapPin, Store, Phone, FileText } from "lucide-react";
+import { User, Mail, MapPin, Store, Phone, FileText, Truck, ChevronDown, Search } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { pharmacySchema } from "../../schemas/pharmacySchema";
@@ -20,6 +20,10 @@ const PharmacyProfilePage = () => {
     const pharmacyProfile = useSelector(selectPharmacyProfile);
     const queryClient = useQueryClient();
     const [isEditing, setIsEditing] = useState(false);
+
+    // Delivery Agent Search State
+    const [agentSearch, setAgentSearch] = useState("");
+    const [showAgentDropdown, setShowAgentDropdown] = useState(false);
 
     const {
         register,
@@ -58,8 +62,44 @@ const PharmacyProfilePage = () => {
             setValue("address", profile.address || "");
             setValue("city", profile.city || "");
             setValue("pincode", profile.pincode || "");
+            setValue("default_delivery_agent_id", profile.default_delivery_agent_id ? String(profile.default_delivery_agent_id) : "");
+
+            // Try to set the search box text if deliveryAgents are already loaded
+            // We use a separate useEffect below to handle the case where agents load AFTER the profile
         }
     }, [pharmacyProfile, profileData, setValue]);
+
+    // Fetch Delivery Agents
+    const { data: deliveryAgentsResponse } = useQuery({
+        queryKey: ["deliveryAgents"],
+        queryFn: async () => {
+            const response = await instance.get("/deliveries/all");
+            return response.data?.agents || [];
+        },
+    });
+
+    // Wrap with useMemo to ensure stable reference
+    const deliveryAgents = React.useMemo(() => deliveryAgentsResponse || [], [deliveryAgentsResponse]);
+
+    // Update agent search text when delivery agents load
+    useEffect(() => {
+        const profile = pharmacyProfile || profileData;
+        if (profile?.default_delivery_agent_id && deliveryAgents.length > 0) {
+            const selected = deliveryAgents.find(a => String(a.agent_id) === String(profile.default_delivery_agent_id));
+            if (selected) {
+                setAgentSearch(`${selected.full_name} (${selected.phone})`);
+            }
+        } else if (!profile?.default_delivery_agent_id) {
+            setAgentSearch("");
+        }
+    }, [pharmacyProfile, profileData, deliveryAgents]);
+
+    const filteredAgents = React.useMemo(() => {
+        return deliveryAgents.filter((agent) =>
+            agent.full_name.toLowerCase().includes(agentSearch.toLowerCase()) ||
+            agent.phone.includes(agentSearch)
+        );
+    }, [deliveryAgents, agentSearch]);
 
     // Mutation to Upsert Profile
     const mutation = useMutation({
@@ -280,6 +320,129 @@ const PharmacyProfilePage = () => {
                                     )}
                                 </div>
 
+                                {/* Default Delivery Agent (Select with inner Search) */}
+                                <div className="relative">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Default Delivery Agent
+                                    </label>
+
+                                    {/* Dropdown Trigger Button */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAgentDropdown(!showAgentDropdown)}
+                                        className={`w-full flex items-center justify-between rounded-lg border bg-white ${errors.default_delivery_agent_id
+                                            ? "border-red-500 focus:ring-red-500"
+                                            : "border-gray-300 focus:ring-teal-500 focus:border-teal-500 hover:bg-gray-50"
+                                            } focus:ring-1 p-2.5 outline-none transition text-left`}
+                                    >
+                                        <div className="flex items-center gap-3 w-full overflow-hidden">
+                                            <Truck className="h-5 w-5 text-gray-400 shrink-0" />
+                                            <span className="truncate flex-1">
+                                                {/* Find the selected agent name or show placeholder */}
+                                                {(() => {
+                                                    // We can't easily sync without watch(), so we will rely on the agentSearch state which we used to store the label!
+                                                    // Let's use agentSearch to display the selected agent label, or fallback.
+                                                    return agentSearch || <span className="text-gray-400">Select Delivery Agent (Optional)</span>;
+                                                })()}
+                                            </span>
+                                        </div>
+                                        <ChevronDown className={`h-5 w-5 text-gray-400 shrink-0 transition-transform ${showAgentDropdown ? "rotate-180" : ""}`} />
+                                    </button>
+
+                                    {/* Hidden real input for react-hook-form */}
+                                    <input type="hidden" {...register("default_delivery_agent_id")} />
+
+                                    {/* Dropdown Popover */}
+                                    {showAgentDropdown && (
+                                        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden flex flex-col">
+
+                                            {/* Search box inside dropdown */}
+                                            <div className="p-3 border-b border-gray-100 bg-gray-50/50">
+                                                <div className="relative">
+                                                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                                                    <input
+                                                        type="text"
+                                                        autoFocus
+                                                        className="w-full pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
+                                                        placeholder="Search name or phone..."
+                                                        onChange={(e) => {
+                                                            // We no longer use agentSearch for strictly the input box, filter dynamically
+                                                            // Wait, if we type in here, we'll lose the "Selected label" stored in agentSearch.
+                                                            // Let's use a local DOM filter or simply rely on agentSearch and clear it when opening.
+                                                            // For simplicity we will override agentSearch while typing, 
+                                                            // and reset it to the proper label when closing.
+                                                            setAgentSearch(e.target.value);
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Agent List */}
+                                            <div className="max-h-60 overflow-y-auto w-full">
+                                                <div
+                                                    className="px-4 py-3 hover:bg-red-50 text-red-600 cursor-pointer text-sm font-medium border-b border-gray-100 transition-colors"
+                                                    onClick={() => {
+                                                        setValue("default_delivery_agent_id", "");
+                                                        setAgentSearch(""); // Empty label
+                                                        setShowAgentDropdown(false);
+                                                    }}
+                                                >
+                                                    Clear Selection
+                                                </div>
+
+                                                {filteredAgents.length > 0 ? (
+                                                    filteredAgents.map((agent) => (
+                                                        <div
+                                                            key={agent.agent_id}
+                                                            className="px-4 py-3 hover:bg-teal-50 cursor-pointer border-b border-gray-50 last:border-0 transition-colors flex flex-col gap-0.5"
+                                                            onClick={() => {
+                                                                // Set standard form value
+                                                                setValue("default_delivery_agent_id", String(agent.agent_id));
+                                                                // Update display label
+                                                                setAgentSearch(`${agent.full_name} (${agent.phone})`);
+                                                                setShowAgentDropdown(false);
+                                                            }}
+                                                        >
+                                                            <div className="text-sm font-semibold text-gray-900">{agent.full_name}</div>
+                                                            <div className="text-xs text-gray-500 flex items-center gap-1">
+                                                                <Phone className="w-3 h-3" /> {agent.phone}
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="px-4 py-6 text-sm text-gray-500 text-center bg-gray-50">
+                                                        No agents found
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Backdrop to close dropdown when clicking outside */}
+                                    {showAgentDropdown && (
+                                        <div
+                                            className="fixed inset-0 z-40"
+                                            onClick={() => {
+                                                setShowAgentDropdown(false);
+                                                // Restore label of selected item just in case search was changed
+                                                const selectedId = register("default_delivery_agent_id").value || pharmacyProfile?.default_delivery_agent_id || profileData?.default_delivery_agent_id;
+                                                const selected = deliveryAgents.find(a => String(a.agent_id) === String(selectedId));
+                                                if (selected) {
+                                                    setAgentSearch(`${selected.full_name} (${selected.phone})`);
+                                                } else {
+                                                    setAgentSearch("");
+                                                }
+                                            }}
+                                        />
+                                    )}
+
+                                    {errors.default_delivery_agent_id && (
+                                        <p className="text-red-500 text-xs mt-1">
+                                            {errors.default_delivery_agent_id.message}
+                                        </p>
+                                    )}
+                                </div>
+
                                 {/* Address (Full Width) */}
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -317,6 +480,7 @@ const PharmacyProfilePage = () => {
                                                 address: profile?.address || "",
                                                 city: profile?.city || "",
                                                 pincode: profile?.pincode || "",
+                                                default_delivery_agent_id: profile?.default_delivery_agent_id || "",
                                             });
                                         }}
                                         className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
@@ -373,6 +537,18 @@ const PharmacyProfilePage = () => {
                                         <div>
                                             {currentProfile.address}, {currentProfile.city} -{" "}
                                             {currentProfile.pincode}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 md:col-span-2">
+                                    <label className="text-xs text-gray-500 uppercase font-semibold mb-1 block">
+                                        Default Delivery Agent
+                                    </label>
+                                    <div className="font-medium text-gray-900 flex items-start gap-2">
+                                        <Truck className="w-4 h-4 text-teal-600 mt-1 shrink-0" />
+                                        <div>
+                                            {deliveryAgents.find(a => String(a.agent_id) === String(currentProfile.default_delivery_agent_id))?.full_name || "None Selected"}
                                         </div>
                                     </div>
                                 </div>

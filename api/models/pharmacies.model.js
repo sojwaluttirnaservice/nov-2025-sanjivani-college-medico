@@ -12,7 +12,11 @@ const pharmaciesModel = {
                 pharmacy_name,
                 license_no,
                 contact_no,
-                is_verified
+                is_verified,
+                default_delivery_agent_id,
+                address,
+                city,
+                pincode
             FROM pharmacies
             WHERE user_id = ?
             LIMIT 1
@@ -32,8 +36,9 @@ const pharmaciesModel = {
                 contact_no,
                 address,
                 city,
-                pincode
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                pincode,
+                default_delivery_agent_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `;
     return query(q, [
       data.user_id,
@@ -43,6 +48,7 @@ const pharmaciesModel = {
       data.address,
       data.city || null,
       data.pincode || null,
+      data.default_delivery_agent_id || null,
     ]);
   },
 
@@ -58,7 +64,8 @@ const pharmaciesModel = {
                 contact_no = ?,
                 address = ?,
                 city = ?,
-                pincode = ?
+                pincode = ?,
+                default_delivery_agent_id = ?
             WHERE user_id = ?
         `;
     return query(q, [
@@ -68,6 +75,7 @@ const pharmaciesModel = {
       data.address,
       data.city || null,
       data.pincode || null,
+      data.default_delivery_agent_id || null,
       userId,
     ]);
   },
@@ -99,6 +107,7 @@ const pharmaciesModel = {
                 p.city,
                 p.pincode,
                 p.is_verified,
+                p.default_delivery_agent_id,
                 u.id AS user_id,
                 u.email,
                 u.role
