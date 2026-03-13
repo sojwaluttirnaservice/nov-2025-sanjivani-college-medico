@@ -335,7 +335,7 @@ const RestockRequestModal = ({ medicine, agents, onSubmit, onClose, isPending })
                             onChange={handleChange}
                             className="w-full border border-gray-200 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 bg-white"
                         >
-                            <option value="">-- Any available agent --</option>
+                            <option value="">-- Use Pharmacy Default Agent --</option>
                             {agents.map(agent => (
                                 <option key={agent.id} value={agent.id}>
                                     {agent.full_name} {agent.is_available ? '✓ Available' : '(Busy)'}

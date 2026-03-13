@@ -64,6 +64,14 @@ const deliveryController = {
       profile: updated,
     });
   }),
+
+  // GET /deliveries/all — fetch all delivery agents for pharmacies to choose from
+  getAllAgents: asyncHandler(async (req, res) => {
+    const agents = await deliveryAgentsModel.getAll();
+    return sendSuccess(res, STATUS.OK, "All delivery agents fetched", {
+      agents,
+    });
+  }),
 };
 
 module.exports = deliveryController;

@@ -22,4 +22,5 @@ export const pharmacySchema = yup.object().shape({
     .string()
     .required("Pincode is required")
     .matches(/^[0-9]{6}$/, "Pincode must be exactly 6 digits"),
+  default_delivery_agent_id: yup.string().nullable().notRequired(),
 });
