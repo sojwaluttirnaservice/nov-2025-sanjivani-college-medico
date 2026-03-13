@@ -7,7 +7,7 @@ const STATUS = require("../../utils/status");
 
 const deliveryController = {
   getActiveDeliveries: asyncHandler(async (req, res) => {
-    const tasks = await deliveriesModel.getActiveDeliveries();
+    const tasks = await deliveriesModel.getActiveDeliveries(req.user?.id);
     return sendSuccess(res, STATUS.OK, "Active deliveries fetched", tasks);
   }),
 

@@ -7,6 +7,7 @@ const deliveryAgentsModel = {
   checkByUserId: (userId) => {
     const q = `
       SELECT 
+        id,
         id AS agent_id,
         user_id,
         full_name,
@@ -27,6 +28,7 @@ const deliveryAgentsModel = {
   getWithUser: (userId) => {
     const q = `
       SELECT
+        da.id,
         da.id AS agent_id,
         da.full_name,
         da.phone,
@@ -76,6 +78,7 @@ const deliveryAgentsModel = {
   getAll: () => {
     const q = `
       SELECT
+        da.id,
         da.id AS agent_id,
         da.full_name,
         da.phone,

@@ -72,6 +72,19 @@ const orderSchema = sequelize.define(
       comment: "Delivery address for the order",
     },
 
+    pincode: {
+      type: STRING,
+      allowNull: true,
+      comment:
+        "Pincode for delivery (redundant if city/address used but good for filtering)",
+    },
+
+    delivery_agent_id: {
+      type: INTEGER,
+      allowNull: true,
+      comment: "Assigned delivery agent for this order",
+    },
+
     placed_at: {
       type: DATE,
       defaultValue: sequelize.literal("CURRENT_TIMESTAMP"),
@@ -120,5 +133,9 @@ orderSchema.belongsTo(Prescription, {
   foreignKey: "prescription_id",
   as: "prescription",
 });
+
+// We can't easily import DeliveryAgent here due to circular deps if we're not careful,
+// but we can define the relationship at the model level or use a string if needed.
+// However, adding the column is the priority.
 
 module.exports = orderSchema;

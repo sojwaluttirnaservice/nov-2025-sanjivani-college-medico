@@ -48,7 +48,7 @@ const pharmaciesController = {
     };
 
     // UPDATE
-    if (existingPharmacy && existingPharmacy.length) {
+    if (existingPharmacy) {
       await pharmaciesModel.updateByUserId(userId, payload);
 
       return sendSuccess(
@@ -68,10 +68,8 @@ const pharmaciesController = {
       } else {
         // Fallback: fetch the pharmacy we just created to get its ID
         const newPharmacy = await pharmaciesModel.checkByUserId(userId);
-        if (newPharmacy && newPharmacy.length > 0) {
-          await inventoryService.seedDefaultInventory(
-            newPharmacy[0].pharmacy_id,
-          );
+        if (newPharmacy) {
+          await inventoryService.seedDefaultInventory(newPharmacy.pharmacy_id);
         }
       }
     } catch (err) {
@@ -94,7 +92,7 @@ const pharmaciesController = {
 
     const pharmacy = await pharmaciesModel.checkByUserId(userId);
 
-    if (!pharmacy || !pharmacy.length) {
+    if (!pharmacy) {
       return sendSuccess(res, STATUS.OK, "Pharmacy profile not found", {
         exists: false,
         profile: null,
@@ -103,7 +101,7 @@ const pharmaciesController = {
 
     return sendSuccess(res, STATUS.OK, "Pharmacy profile fetched", {
       exists: true,
-      profile: pharmacy[0],
+      profile: pharmacy,
     });
   }),
 
@@ -112,13 +110,7 @@ const pharmaciesController = {
    */
   getPharmacyById: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const pharmacyData = await pharmaciesModel.getById(id);
-
-    // Provide robust checking for array response
-    const pharmacy =
-      Array.isArray(pharmacyData) && pharmacyData.length
-        ? pharmacyData[0]
-        : null;
+    const pharmacy = await pharmaciesModel.getById(id);
 
     if (!pharmacy) {
       return sendError(res, STATUS.NOT_FOUND, "Pharmacy not found");

@@ -109,7 +109,7 @@ const restockRequestModel = {
   // Get all delivery agents for pharmacy to choose from
   getAllAgents: () => {
     const sql = `
-      SELECT id, full_name, phone, is_available, current_location
+      SELECT id, id AS agent_id, full_name, phone, is_available, current_location
       FROM delivery_agents
       ORDER BY is_available DESC, full_name ASC
     `;
