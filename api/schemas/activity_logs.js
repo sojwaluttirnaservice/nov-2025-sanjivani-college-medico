@@ -25,13 +25,15 @@ const activityLogSchema = sequelize.define(
     action: {
       type: STRING,
       allowNull: false,
-      comment: "Short action description (e.g., 'Order Approved', 'Stock Updated')",
+      comment:
+        "Short action description (e.g., 'Order Approved', 'Stock Updated')",
     },
 
     module: {
       type: STRING,
       allowNull: true,
-      comment: "Optional module name related to the action (e.g., 'Orders', 'Pharmacy')",
+      comment:
+        "Optional module name related to the action (e.g., 'Orders', 'Pharmacy')",
     },
 
     details: {
@@ -55,7 +57,8 @@ const activityLogSchema = sequelize.define(
   },
   {
     timestamps: true,
-  }
+    indexes: [{ fields: ["action"] }, { fields: ["module"] }],
+  },
 );
 
 // Association

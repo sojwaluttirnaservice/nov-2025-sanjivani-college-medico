@@ -1,80 +1,92 @@
 const inventoryModel = require("../../models/inventory.model");
 const inventoryService = require("../../services/inventoryService");
+const asyncHandler = require("../../utils/asyncHandler");
+const { sendSuccess, sendError } = require("../../utils/responses/ApiResponse");
+const STATUS = require("../../utils/status");
 
 const inventoryController = {
-  getInventory: async (req, res) => {
-    try {
-      const pharmacyId = req.query.pharmacyId || 1;
-      const inventory =
-        await inventoryModel.getInventoryByPharmacyId(pharmacyId);
-      res.status(200).json(inventory);
-    } catch (error) {
-      console.error("Error fetching inventory:", error);
-      res.status(500).json({ message: "Internal server error" });
+  // GET /api/v1/inventory?pharmacyId=X&page=1&limit=50&search=... — Get all inventory for a pharmacy
+  getInventory: asyncHandler(async (req, res) => {
+    const pharmacyId = req.query.pharmacyId;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const search = req.query.search || "";
+    const offset = (page - 1) * limit;
+
+    if (!pharmacyId) {
+      return sendError(res, STATUS.BAD_REQUEST, "pharmacyId is required");
     }
-  },
 
-  addStock: async (req, res) => {
-    try {
-      // Expect batch_no, expiryDate, etc.
-      const data = { ...req.body, pharmacyId: req.body.pharmacyId || 1 };
+    const { inventory, totalCount } =
+      await inventoryModel.getInventoryByPharmacyId(
+        pharmacyId,
+        offset,
+        limit,
+        search,
+      );
 
-      await inventoryService.addStock(data);
+    return sendSuccess(res, STATUS.OK, "Inventory fetched", {
+      inventory,
+      pagination: {
+        page,
+        limit,
+        totalItems: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+    });
+  }),
 
-      res.status(201).json({ message: "Stock batch added successfully" });
-    } catch (error) {
-      console.error("Error adding stock:", error);
-      res
-        .status(500)
-        .json({ message: "Internal server error", error: error.message });
+  // POST /api/v1/inventory — Add a stock batch for a medicine
+  addStock: asyncHandler(async (req, res) => {
+    const { pharmacyId, medicineId, batch_no, quantity, expiryDate, price } =
+      req.body;
+    if (!pharmacyId || !medicineId || !quantity || !expiryDate) {
+      return sendError(
+        res,
+        STATUS.BAD_REQUEST,
+        "pharmacyId, medicineId, quantity and expiryDate are required",
+      );
     }
-  },
+    await inventoryService.addStock(req.body);
+    return sendSuccess(res, STATUS.CREATED, "Stock batch added successfully");
+  }),
 
-  // Simple: Get batches for a specific medicine (So student can see "Batch A, Batch B")
-  getMedicineBatches: async (req, res) => {
-    try {
-      const { medicineId } = req.query; // Changed from params to query to match previous pattern or keep it simple
-      const pharmacyId = req.query.pharmacyId || 1;
-
-      if (!medicineId)
-        return res.status(400).json({ message: "Medicine ID required" });
-
-      const batches = await inventoryService.getBatches(medicineId, pharmacyId);
-      res.status(200).json(batches);
-    } catch (error) {
-      res.status(500).json({ message: "Error fetching batches" });
+  // GET /api/v1/inventory/batches?medicineId=X&pharmacyId=Y — Get all batches for a medicine
+  getMedicineBatches: asyncHandler(async (req, res) => {
+    const { medicineId, pharmacyId } = req.query;
+    if (!medicineId) {
+      return sendError(res, STATUS.BAD_REQUEST, "medicineId is required");
     }
-  },
-
-  // Simple: Sell item (Deduct stock) - New Endpoint
-  sellItem: async (req, res) => {
-    try {
-      const { batchId, quantity } = req.body;
-      if (!batchId || !quantity)
-        return res
-          .status(400)
-          .json({ message: "Batch ID and Quantity required" });
-
-      await inventoryService.sellFromBatch(batchId, quantity);
-      res.status(200).json({ message: "Stock updated successfully" });
-    } catch (error) {
-      res.status(400).json({ message: error.message });
+    if (!pharmacyId) {
+      return sendError(res, STATUS.BAD_REQUEST, "pharmacyId is required");
     }
-  },
+    const batches = await inventoryService.getBatches(medicineId, pharmacyId);
+    return sendSuccess(res, STATUS.OK, "Batches fetched", { batches });
+  }),
 
-  getLowStockAlerts: async (req, res) => {
-    try {
-      const pharmacyId = req.query.pharmacyId || 1;
-      const threshold = req.query.threshold || 30; // Default threshold
-
-      const alerts = await inventoryModel.getLowStock(pharmacyId, threshold);
-      res.status(200).json(alerts);
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error fetching alerts", error: error.message });
+  // POST /api/v1/inventory/sell — Sell/deduct stock from a batch
+  sellItem: asyncHandler(async (req, res) => {
+    const { batchId, quantity } = req.body;
+    if (!batchId || !quantity) {
+      return sendError(
+        res,
+        STATUS.BAD_REQUEST,
+        "batchId and quantity are required",
+      );
     }
-  },
+    await inventoryService.sellFromBatch(batchId, quantity);
+    return sendSuccess(res, STATUS.OK, "Stock updated successfully");
+  }),
+
+  // GET /api/v1/inventory/low-stock?pharmacyId=X&threshold=Y — Get low stock alerts
+  getLowStockAlerts: asyncHandler(async (req, res) => {
+    const { pharmacyId, threshold = 30 } = req.query;
+    if (!pharmacyId) {
+      return sendError(res, STATUS.BAD_REQUEST, "pharmacyId is required");
+    }
+    const alerts = await inventoryModel.getLowStock(pharmacyId, threshold);
+    return sendSuccess(res, STATUS.OK, "Low stock alerts fetched", { alerts });
+  }),
 };
 
 module.exports = inventoryController;

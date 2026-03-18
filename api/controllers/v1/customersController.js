@@ -37,7 +37,7 @@ const customersController = {
     };
 
     // UPDATE
-    if (existingCustomer && existingCustomer.length) {
+    if (existingCustomer) {
       await customersModel.updateByUserId(userId, payload);
 
       return sendSuccess(

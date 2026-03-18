@@ -63,7 +63,7 @@ const deliveryAgentSchema = sequelize.define(
     updatedAt: {
       type: DATE,
       defaultValue: sequelize.literal(
-        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
       ),
       allowNull: false,
       comment: "Timestamp when the record was last updated",
@@ -71,7 +71,8 @@ const deliveryAgentSchema = sequelize.define(
   },
   {
     timestamps: true,
-  }
+    indexes: [{ fields: ["is_available"] }],
+  },
 );
 
 // Association

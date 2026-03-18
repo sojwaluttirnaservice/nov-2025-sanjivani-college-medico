@@ -1,4 +1,4 @@
-const { query } = require("../utils/query/query");
+const { query, queryOne } = require("../utils/query/query");
 
 const customersModel = {
   /**
@@ -17,7 +17,7 @@ const customersModel = {
             FROM customers
             WHERE user_id = ?
         `;
-    return query(q, [userId]);
+    return query(q, [userId]).then((res) => res[0]);
   },
 
   /**
@@ -78,7 +78,7 @@ const customersModel = {
             WHERE id = ?
             LIMIT 1
         `;
-    return query(q, [customerId]);
+    return queryOne(q, [customerId]);
   },
 
   /**
@@ -101,7 +101,7 @@ const customersModel = {
             WHERE c.user_id = ?
             LIMIT 1
         `;
-    return query(q, [userId]);
+    return query(q, [userId]).then((res) => res[0]);
   },
 
   /**

@@ -5,11 +5,33 @@ import { showError, showSuccess } from "../utils/error";
 export const useDelivery = () => {
   const queryClient = useQueryClient();
 
+  const profileQuery = useQuery({
+    queryKey: ["delivery-profile"],
+    queryFn: async () => {
+      const { data } = await instance.get("/deliveries/profile");
+      return data || null;
+    },
+  });
+
+  const updateProfile = useMutation({
+    mutationFn: async (profileData) => {
+      const { data } = await instance.put("/deliveries/profile", profileData);
+      return data?.profile;
+    },
+    onSuccess: (data) => {
+      showSuccess("Profile saved!");
+      queryClient.setQueryData(["delivery-profile"], data);
+    },
+    onError: (error) => {
+      showError(error, "Failed to save profile");
+    },
+  });
+
   const activeDeliveriesQuery = useQuery({
     queryKey: ["active-deliveries"],
     queryFn: async () => {
       const { data } = await instance.get("/deliveries/active");
-      return data;
+      return data || [];
     },
   });
 
@@ -17,7 +39,7 @@ export const useDelivery = () => {
     queryKey: ["delivery-history"],
     queryFn: async () => {
       const { data } = await instance.get("/deliveries/history");
-      return data;
+      return data || [];
     },
   });
 
@@ -30,8 +52,8 @@ export const useDelivery = () => {
     onSuccess: () => {
       showSuccess("Delivery completed successfully!");
       // Invalidate both active and history queries
-      queryClient.invalidateQueries(["active-deliveries"]);
-      queryClient.invalidateQueries(["delivery-history"]);
+      queryClient.invalidateQueries({ queryKey: ["active-deliveries"] });
+      queryClient.invalidateQueries({ queryKey: ["delivery-history"] });
     },
     onError: (error) => {
       showError(error, "Failed to update delivery status");
@@ -42,5 +64,7 @@ export const useDelivery = () => {
     activeDeliveriesQuery,
     historyQuery,
     markDelivered,
+    profileQuery,
+    updateProfile,
   };
 };

@@ -1,16 +1,21 @@
-const { query } = require("../utils/query/query");
+const { query, queryOne } = require("../utils/query/query");
 
 const inventoryModel = {
   // Get all inventory items for a specific pharmacy, aggregated by medicine
-  getInventoryByPharmacyId: (pharmacyId) => {
+  getInventoryByPharmacyId: async (
+    pharmacyId,
+    offset = 0,
+    limit = 50,
+    search = "",
+  ) => {
     // Aggregates batches to show total stock per medicine for the main list
-    const sql = `
+    let sql = `
       SELECT 
         m.id as medicine_id, 
         m.name as medicine_name, 
-        m.brand, 
-        m.category, 
-        m.dosage_form,
+        m.manufacturer AS manufacturer, 
+        m.type, 
+        m.type AS dosage_form, -- Retained as alias temporarily if needed
         SUM(pi.quantity) as total_physical,
         0 as total_reserved,
         SUM(pi.quantity) as quantity, -- Available quantity
@@ -19,12 +24,51 @@ const inventoryModel = {
       FROM pharmacy_inventory pi
       JOIN medicines m ON pi.medicine_id = m.id
       WHERE pi.pharmacy_id = ?
-      GROUP BY m.id
     `;
-    return query(sql, [pharmacyId]);
+    const params = [pharmacyId];
+
+    let countSql = "";
+    const countParams = [pharmacyId];
+
+    if (search && search.trim() !== "") {
+      countSql = `
+        SELECT COUNT(DISTINCT pi.medicine_id) as total
+        FROM pharmacy_inventory pi
+        JOIN medicines m ON pi.medicine_id = m.id
+        WHERE pi.pharmacy_id = ? AND m.name LIKE ?
+      `;
+      countParams.push(`%${search.trim()}%`);
+    } else {
+      // Fast path: simply count rows without joining when there's no search
+      countSql = `SELECT COUNT(*) as total FROM pharmacy_inventory WHERE pharmacy_id = ?`;
+    }
+
+    if (search && search.trim() !== "") {
+      sql += ` AND m.name LIKE ?`;
+      params.push(`%${search.trim()}%`);
+    }
+
+    sql += ` GROUP BY m.id`;
+
+    // Only order by name if searching, otherwise the DB scan is too slow for 253k records
+    if (search && search.trim() !== "") {
+      sql += ` ORDER BY m.name ASC`;
+    }
+
+    sql += ` LIMIT ? OFFSET ?`;
+    params.push(limit, offset);
+
+    const inventory = await query(sql, params);
+    const countResult = await query(countSql, countParams);
+
+    return {
+      inventory,
+      totalCount:
+        countResult && countResult.length > 0 ? countResult[0].total : 0,
+    };
   },
 
-  // Get specific batches for a medicine (FEFO)
+  // Get specific batches for a medicine (FEFO - First Expire First Out)
   getBatchesByExpiry: (medicineId, pharmacyId) => {
     const sql = `
       SELECT * 
@@ -32,6 +76,20 @@ const inventoryModel = {
       WHERE medicine_id = ? AND pharmacy_id = ? 
       AND expiry_date > CURRENT_DATE
       ORDER BY expiry_date ASC
+    `;
+    return query(sql, [medicineId, pharmacyId]);
+  },
+
+  // Auto-pick the best batch for a medicine (highest qty, valid expiry)
+  getBestBatch: (medicineId, pharmacyId) => {
+    const sql = `
+      SELECT * 
+      FROM pharmacy_inventory 
+      WHERE medicine_id = ? AND pharmacy_id = ? 
+      AND expiry_date > CURRENT_DATE
+      AND quantity > 0
+      ORDER BY quantity DESC, expiry_date DESC
+      LIMIT 1
     `;
     return query(sql, [medicineId, pharmacyId]);
   },
@@ -55,9 +113,7 @@ const inventoryModel = {
 
   // Simple: Get single batch details
   getBatchById: (id) => {
-    return query("SELECT * FROM pharmacy_inventory WHERE id = ?", [id]).then(
-      (res) => res[0],
-    );
+    return queryOne("SELECT * FROM pharmacy_inventory WHERE id = ?", [id]);
   },
 
   // Simple: Update physical quantity directly
@@ -89,16 +145,22 @@ const inventoryModel = {
 
   // Get low stock items
   getLowStock: (pharmacyId, threshold = 10) => {
+    // Optimized: First aggregate the inventory for the given pharmacy, then filter by threshold,
+    // and ONLY join the medicines table for the few resulting rows.
     const sql = `
       SELECT 
         m.id as medicine_id, 
         m.name as medicine_name,
-        SUM(pi.quantity) as available_quantity
-      FROM pharmacy_inventory pi
-      JOIN medicines m ON pi.medicine_id = m.id
-      WHERE pi.pharmacy_id = ?
-      GROUP BY m.id
-      HAVING available_quantity <= ?
+        sub.available_quantity
+      FROM (
+        SELECT medicine_id, SUM(quantity) as available_quantity
+        FROM pharmacy_inventory
+        WHERE pharmacy_id = ?
+        GROUP BY medicine_id
+        HAVING available_quantity <= ?
+        LIMIT 20
+      ) sub
+      JOIN medicines m ON m.id = sub.medicine_id
     `;
     return query(sql, [pharmacyId, threshold]);
   },

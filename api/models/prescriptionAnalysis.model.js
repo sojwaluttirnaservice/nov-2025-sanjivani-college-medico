@@ -1,4 +1,4 @@
-const { query } = require("../utils/query/query");
+const { query, queryOne } = require("../utils/query/query");
 
 const prescriptionAnalysisModel = {
   create: (data) => {
@@ -23,13 +23,12 @@ const prescriptionAnalysisModel = {
   },
 
   getLatestByPrescriptionId: (prescriptionId) => {
-    return query(
+    return queryOne(
       `
       SELECT *
       FROM prescription_analysis
       WHERE prescription_id = ?
       ORDER BY createdAt DESC
-      LIMIT 1
       `,
       [prescriptionId],
     );

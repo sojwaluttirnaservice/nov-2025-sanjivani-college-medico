@@ -8,7 +8,7 @@ import { router } from "expo-router";
 // For iOS Simulator, use 'http://localhost:2555'
 // const API_URL = "http://10.141.179.220:2555/api/v1";
 
-const IP_ADDRESS = "10.126.255.131";
+const IP_ADDRESS = "10.56.107.131";
 export const API_URL = `http://${IP_ADDRESS}:2555/api/v1`;
 
 const api = axios.create({

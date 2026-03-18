@@ -1,54 +1,71 @@
 const inventoryService = require("./inventoryService");
 const ordersModel = require("../models/orders.model");
-
 const medicinesModel = require("../models/medicines.model");
 
 const orderService = {
   /**
-   * Create Order with Inventory Deduction (Atomic-ish)
-   * Handles COD Payment Mode logic
+   * Create Order — auto-selects best batch from inventory
+   * No batch_id needed from frontend
    */
   createOrder: async ({ customer_id, pharmacy_id, prescription_id, items }) => {
-    // items = [{ batch_id, medicine_id, quantity, price }]
-
     let totalAmount = 0;
     const processedItems = [];
 
     try {
-      // 1. Validate Inventory & Medicines
       for (const item of items) {
-        // FK Check: Ensure medicine exists
-        const medicine = await medicinesModel.getById(item.medicine_id);
-        if (!medicine) {
+        // Auto-pick best batch for this medicine
+        const batch = await inventoryService.getBestBatch(
+          item.medicine_id,
+          pharmacy_id,
+        );
+
+        if (!batch) {
           console.warn(
-            `[OrderService] Medicine ${item.medicine_id} not found. Auto-creating to satisfy FK.`,
+            `[OrderService] No stock for medicine ${item.medicine_id} — skipping item.`,
           );
-          await medicinesModel.createWithId(item.medicine_id, {
-            name: item.name || `Prescribed Medicine ${item.medicine_id}`,
-            brand: "Auto-Created",
-            price: item.price || 0,
-          });
+          continue; // Skip out-of-stock items
         }
 
-        // Inventory Check (Bypassed but kept for structure)
-        await inventoryService.sellFromBatch(item.batch_id, item.quantity);
+        // Deduct from the auto-selected batch
+        await inventoryService.sellFromBatch(batch.id, item.quantity);
 
-        totalAmount += parseFloat(item.price || 0) * parseInt(item.quantity);
-        processedItems.push(item);
+        const unitPrice = parseFloat(batch.price || item.price || 0);
+        totalAmount += unitPrice * parseInt(item.quantity);
+        processedItems.push({ ...item, batch_id: batch.id, price: unitPrice });
       }
 
-      // 2. Create Order Record
+      if (processedItems.length === 0) {
+        throw new Error(
+          "No items could be added to the order — all medicines are out of stock.",
+        );
+      }
+
+      // Create Order Record
+      // Fetch pharmacy's default delivery agent if not provided
+      let delivery_agent_id = null;
+      const pharmacy = await require("../models/pharmacies.model").getById(
+        pharmacy_id,
+      );
+      if (pharmacy) {
+        delivery_agent_id = pharmacy.default_delivery_agent_id;
+      }
+      console.log(
+        `[OrderService] Assigning agent ${delivery_agent_id} for pharmacy ${pharmacy_id}`,
+      );
+
       const orderResult = await ordersModel.create({
         customer_id,
         pharmacy_id,
         prescription_id,
         total_amount: totalAmount,
-        payment_mode: "CASH", // Hardcoded as per requirement
+        payment_mode: "CASH",
+        delivery_address: "Direct Delivery", // Or fetch from customer
+        delivery_agent_id: delivery_agent_id,
       });
 
       const orderId = orderResult.insertId;
 
-      // 3. Insert Line Items
+      // Insert Line Items
       for (const item of processedItems) {
         await ordersModel.addOrderItem({
           order_id: orderId,
@@ -62,12 +79,9 @@ const orderService = {
         success: true,
         orderId,
         totalAmount,
-        message:
-          "Order created successfully with PROVISIONAL Inventory deduction.",
+        message: "Order created successfully.",
       };
     } catch (error) {
-      // ERROR HANDLING: If inventory deducts but order fails, we should ideally rollback.
-      // For MVP, we assume consistency. Real app needs Transactions.
       console.error("Order Creation Failed:", error);
       throw error;
     }
@@ -106,52 +120,31 @@ const orderService = {
       throw new Error("Order cannot be rejected in its current state");
     }
 
-    // 2. Restock Items
-    // logic assumes we tracked batch_id in order_items?
-    // Wait, order_items table in ordersModel.getOrderDetails only selects medicine_id.
-    // We typically loose track of 'which batch' unless order_items table has batch_id.
-    // Let's check schema via logic. createOrder takes { batch_id... } but addOrderItem only takes medicine_id.
-    // Issue: We don't know which batch to restock if we didn't save batch_id.
-    // Solution for MVP: Restock to the *nearest expiry* batch OR *latest* batch OR just fail?
-    // User wants "simple". If we lost batch info, we can't accurately restock specific batch.
-    // Let's check createOrder implementation again.
-    // It loops items and sells from batch.
-    // But `addOrderItem` does NOT save batch_id.
-    // This is a schema limitation.
-    // WORKAROUND: We will find a valid batch for that medicine (e.g. max expiry) and add stock there, or just fail silently on restock?
-    // No, stock must be accurate.
-    // I will look up the batches for the medicine and add to the one with *highest quantity* or just *any* valid batch.
-    // Better: Add to the batch with latest expiry (LIFO-ish for returns).
-
-    // For now, let's see if we can just assume we handle it loosely or if we must fix schema.
-    // Given "Simple" requirement, I'll attempt to find *any* open batch for that medicine and add it there.
-
+    // 2. Restock Items — find the best batch for each medicine and return stock
     for (const item of order.items) {
-      // Find best batch to restock (Latest expiry that is valid)
+      // Find the best available batch for this medicine and add stock back
       const batches = await inventoryService.getBatches(
         item.medicine_id,
         order.pharmacy_id,
       );
       if (batches && batches.length > 0) {
-        // Pick the last one (furthest expiry) to be safe? Or first (nearest)?
-        // Usually you put it back on the shelf, so same batch is ideal. but we lost it.
-        // We'll pick the batch with latest expiry to avoid immediate expiry issues.
+        // Pick the furthest-expiry batch to stay safe
         const targetBatch = batches[batches.length - 1];
         await inventoryService.restockBatch(targetBatch.id, item.quantity);
       } else {
-        // No active batches? Create a new "Restocked" batch?
-        // Too complex. We log warning and skip restock if no batch found?
-        // Or just re-create a batch?
-        // Let's skip for now if no batch found, but this is rare.
         console.warn(
-          `Could not restock medicine ${item.medicine_id}, no active batches found.`,
+          `Could not restock medicine ${item.medicine_id} — no active batches found.`,
         );
       }
     }
 
     // 3. Update Status
-    await ordersModel.updateStatus(orderId, "CANCELLED"); // or REJECTED
-    await ordersModel.updatePaymentStatus(orderId, "REFUND_DUE"); // If paid? but it's COD usually.
+    await ordersModel.updateStatus(orderId, "CANCELLED");
+    // Only flag REFUND_DUE if customer had already paid (e.g. online payment)
+    // COD orders that were never paid don't need a refund
+    const newPaymentStatus =
+      order.payment_status === "PAID" ? "REFUND_DUE" : "VOID";
+    await ordersModel.updatePaymentStatus(orderId, newPaymentStatus);
 
     return {
       success: true,

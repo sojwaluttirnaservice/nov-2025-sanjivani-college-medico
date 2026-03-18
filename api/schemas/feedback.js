@@ -55,7 +55,7 @@ const feedbackSchema = sequelize.define(
     updatedAt: {
       type: DATE,
       defaultValue: sequelize.literal(
-        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
       ),
       allowNull: false,
       comment: "Timestamp when feedback was last updated",
@@ -63,11 +63,15 @@ const feedbackSchema = sequelize.define(
   },
   {
     timestamps: true,
-  }
+    indexes: [{ fields: ["rating"] }],
+  },
 );
 
 // Associations
-feedbackSchema.belongsTo(Customer, { foreignKey: "customer_id", as: "customer" });
+feedbackSchema.belongsTo(Customer, {
+  foreignKey: "customer_id",
+  as: "customer",
+});
 feedbackSchema.belongsTo(Order, { foreignKey: "order_id", as: "order" });
 
 module.exports = feedbackSchema;

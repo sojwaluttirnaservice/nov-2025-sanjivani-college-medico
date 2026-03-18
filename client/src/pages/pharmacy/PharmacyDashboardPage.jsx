@@ -157,7 +157,9 @@ const PharmacyDashboardPage = () => {
                             )}
                         </div>
                         {pendingRequests.length > 4 && (
-                            <button className="w-full mt-4 py-2 text-sm text-orange-600 font-medium hover:bg-orange-50 rounded-lg transition-colors">
+                            <button
+                                onClick={() => navigate('/pharmacy/orders')}
+                                className="w-full mt-4 py-2 text-sm text-orange-600 font-medium hover:bg-orange-50 rounded-lg transition-colors">
                                 View All Requests
                             </button>
                         )}
@@ -188,7 +190,9 @@ const PharmacyDashboardPage = () => {
                                 <p className="text-sm text-gray-500 text-center py-4">No recent orders</p>
                             )}
                         </div>
-                        <button className="w-full mt-4 py-2 text-sm text-teal-600 font-medium hover:bg-teal-50 rounded-lg transition-colors">
+                        <button
+                            onClick={() => navigate('/pharmacy/orders')}
+                            className="w-full mt-4 py-2 text-sm text-teal-600 font-medium hover:bg-teal-50 rounded-lg transition-colors">
                             View All Orders
                         </button>
                     </div>
@@ -209,7 +213,9 @@ const PharmacyDashboardPage = () => {
                                         <p className="text-xs text-red-600 font-medium">Only {item.available_quantity} units left</p>
                                     </div>
                                     <div className="text-right">
-                                        <button className="px-3 py-1.5 bg-white border border-red-200 text-red-600 text-xs font-bold rounded-lg hover:bg-red-50 transition-colors">
+                                        <button
+                                            onClick={() => navigate('/pharmacy/inventory')}
+                                            className="px-3 py-1.5 bg-white border border-red-200 text-red-600 text-xs font-bold rounded-lg hover:bg-red-50 transition-colors">
                                             Restock
                                         </button>
                                     </div>

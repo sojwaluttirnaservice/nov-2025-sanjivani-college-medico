@@ -1,10 +1,31 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { LayoutDashboard, Truck, History, UserCircle } from 'lucide-react'
+import { useDispatch } from 'react-redux'
 import Sidebar from '../components/dashboard/Sidebar'
 import DashboardNavbar from '../components/dashboard/DashboardNavbar'
+import { instance } from '../utils/instance'
+import { updateUser } from '../redux/slices/authSlice'
 
 const DeliveryLayout = () => {
+    const dispatch = useDispatch()
+
+    // Sync profile on mount to ensure agent_id is present in auth state
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const response = await instance.get('/users/me')
+                // axios wraps body in response.data; sendSuccess wraps in {success, data: {user}}
+                if (response.data?.success && response.data?.data?.user) {
+                    dispatch(updateUser(response.data.data.user))
+                }
+            } catch (err) {
+                console.error("Failed to sync delivery profile:", err)
+            }
+        }
+        fetchProfile()
+    }, [dispatch])
+
     // Delivery Agent specific navigation links
     const links = [
         { label: 'Dashboard', path: '/delivery/dashboard', icon: LayoutDashboard, exact: true },

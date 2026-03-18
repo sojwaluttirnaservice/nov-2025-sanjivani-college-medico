@@ -18,6 +18,7 @@ import PharmacyInventoryPage from './pages/pharmacy/PharmacyInventoryPage'
 import PharmacyOrdersPage from './pages/pharmacy/PharmacyOrdersPage'
 import PharmacyProfilePage from './pages/pharmacy/PharmacyProfilePage'
 import PharmacyPrescriptionReviewPage from './pages/pharmacy/PharmacyPrescriptionReviewPage'
+import PharmacyRestockRequestsPage from './pages/pharmacy/PharmacyRestockRequestsPage'
 
 import DeliveryDashboardPage from './pages/delivery/DeliveryDashboardPage'
 import DeliveryActivePage from './pages/delivery/DeliveryActivePage'
@@ -45,6 +46,7 @@ const App = () => {
                 <Route element={<ProtectedRoute allowedRoles={[ROLES.PHARMACY]} />}>
                     <Route path='dashboard' element={<PharmacyDashboardPage />} />
                     <Route path='inventory' element={<PharmacyInventoryPage />} />
+                    <Route path='restock-requests' element={<PharmacyRestockRequestsPage />} />
                     <Route path='orders' element={<PharmacyOrdersPage />} />
                     <Route path='profile' element={<PharmacyProfilePage />} />
                     <Route path='prescriptions/:id' element={<PharmacyPrescriptionReviewPage />} />

@@ -1,4 +1,4 @@
-const { query } = require("../utils/query/query");
+const { query, queryOne } = require("../utils/query/query");
 
 const usersModel = {
   createUser: (userData) => {
@@ -11,14 +11,14 @@ const usersModel = {
   },
 
   getUserByEmail: (email) => {
-    return query(
+    return queryOne(
       `SELECT id, email, password, role FROM users WHERE email = ?`,
-      [email]
+      [email],
     );
   },
 
   getUserById: (userId) => {
-    return query(`SELECT id, email, role FROM users WHERE id = ?`, [userId]);
+    return queryOne(`SELECT id, email, role FROM users WHERE id = ?`, [userId]);
   },
 
   getUsersByRole: (role) => {

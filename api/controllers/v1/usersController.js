@@ -1,5 +1,6 @@
 const customersModel = require("../../models/customers.model");
 const pharmaciesModel = require("../../models/pharmacies.model");
+const deliveryAgentsModel = require("../../models/deliveryAgents.model");
 const usersModel = require("../../models/users.model");
 const asyncHandler = require("../../utils/asyncHandler");
 const APP_ROLES = require("../../utils/checks/roles");
@@ -43,7 +44,7 @@ const usersController = {
     }
 
     // Check if user already exists
-    const [existingUser] = await usersModel.getUserByEmail(email);
+    const existingUser = await usersModel.getUserByEmail(email);
     if (existingUser) {
       return sendError(
         res,
@@ -66,7 +67,7 @@ const usersController = {
       return sendError(res, STATUS.BAD_REQUEST, validationError);
     }
 
-    const [existingUser] = await usersModel.getUserByEmail(email);
+    const existingUser = await usersModel.getUserByEmail(email);
 
     if (!existingUser) {
       return sendError(res, STATUS.NOT_FOUND, "User not found.");
@@ -76,13 +77,28 @@ const usersController = {
       return sendError(res, STATUS.NOT_FOUND, "Invalid Credentials");
     }
 
+    // Ensure the role selected in the frontend matches the user's actual role
+    if (existingUser.role !== role) {
+      return sendError(
+        res,
+        STATUS.FORBIDDEN,
+        "Invalid role selected for this account.",
+      );
+    }
+
     let extraId = {};
     if (existingUser.role === APP_ROLES.CUSTOMER) {
-      const [customer] = await customersModel.checkByUserId(existingUser.id);
+      const customer = await customersModel.checkByUserId(existingUser.id);
       if (customer) extraId.customer_id = customer.customer_id;
     } else if (existingUser.role === APP_ROLES.PHARMACY) {
-      const [pharmacy] = await pharmaciesModel.checkByUserId(existingUser.id);
-      if (pharmacy) extraId.pharmacy_id = pharmacy.pharmacy_id;
+      const pharmacy = await pharmaciesModel.checkByUserId(existingUser.id);
+      if (pharmacy) {
+        extraId.pharmacy_id = pharmacy.pharmacy_id;
+        extraId.default_delivery_agent_id = pharmacy.default_delivery_agent_id;
+      }
+    } else if (existingUser.role === APP_ROLES.DELIVERY_AGENT) {
+      const agent = await deliveryAgentsModel.checkByUserId(existingUser.id);
+      if (agent) extraId.agent_id = agent.agent_id;
     }
 
     const user = {
@@ -114,14 +130,13 @@ const usersController = {
     } else if (role === APP_ROLES.PHARMACY) {
       user = await pharmaciesModel.getWithUser(userId);
     } else if (role === APP_ROLES.DELIVERY_AGENT) {
-      // user = await deliveryAgentModel.getWithUser(userId);
+      user = await deliveryAgentsModel.getWithUser(userId);
     } else {
       return sendError(res, STATUS.FORBIDDEN, "Role not supported");
     }
 
-    // Handle empty result - Return null profile instead of 404
-    // This allows the frontend to show an empty "create profile" form
-    const userProfile = user && user.length > 0 ? user[0] : null;
+    // Handle result - Standardized models now return a single object or null
+    const userProfile = user || null;
 
     return sendSuccess(res, STATUS.OK, "User Fetched Successfully", {
       user: userProfile,

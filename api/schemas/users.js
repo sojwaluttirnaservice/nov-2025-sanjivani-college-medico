@@ -26,7 +26,12 @@ const userSchema = sequelize.define(
     },
 
     role: {
-      type: ENUM(APP_ROLES.CUSTOMER, APP_ROLES.ADMIN, APP_ROLES.PHARMACY, APP_ROLES.DELIVERY_AGENT),
+      type: ENUM(
+        APP_ROLES.CUSTOMER,
+        APP_ROLES.ADMIN,
+        APP_ROLES.PHARMACY,
+        APP_ROLES.DELIVERY_AGENT,
+      ),
       allowNull: false,
     },
 
@@ -46,7 +51,7 @@ const userSchema = sequelize.define(
     updatedAt: {
       type: DATE,
       defaultValue: sequelize.literal(
-        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
       ),
       allowNull: false,
       comment: "Timestamp when the user was last updated",
@@ -54,7 +59,8 @@ const userSchema = sequelize.define(
   },
   {
     timestamps: true,
-  }
+    indexes: [{ fields: ["role"] }, { fields: ["is_active"] }],
+  },
 );
 
 // Association

@@ -81,6 +81,7 @@ const prescriptionSchema = sequelize.define(
   },
   {
     timestamps: true,
+    indexes: [{ fields: ["is_verified"] }],
   },
 );
 

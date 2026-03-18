@@ -29,7 +29,7 @@ const LoginPage = () => {
         { value: 'PHARMACY', label: 'Pharmacy', description: 'Manage pharmacy inventory' },
         { value: 'DELIVERY_AGENT', label: 'Delivery Agent', description: 'Handle deliveries' }
     ]
-    
+
     // React Hook Form
     const { register, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(loginSchema),
@@ -45,7 +45,7 @@ const LoginPage = () => {
         mutationFn: async (data) => {
             return await instance.post('/users/login', data)
         },
-        onSuccess: (response, variables) => {
+        onSuccess: (response) => {
             if (response.success) {
                 // Dispatch credentials to Redux store (handles localStorage internally)
                 dispatch(setCredentials({
@@ -57,7 +57,8 @@ const LoginPage = () => {
 
                 // Redirect based on role
                 setTimeout(() => {
-                    switch (variables.role) {
+                    const actualRole = response.data.user.role;
+                    switch (actualRole) {
                         case 'PHARMACY':
                             navigate('/pharmacy/dashboard')
                             break
@@ -82,7 +83,7 @@ const LoginPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-teal-50 via-emerald-50 to-cyan-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="min-h-screen bg-linear-to-br from-teal-50 via-emerald-50 to-cyan-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
             {/* Background decorations */}
             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-teal-200 rounded-full blur-3xl opacity-30 animate-pulse"></div>
             <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-[500px] h-[500px] bg-emerald-200 rounded-full blur-3xl opacity-30"></div>
@@ -227,7 +228,7 @@ const LoginPage = () => {
                             <button
                                 type="submit"
                                 disabled={loginMutation.isPending}
-                                className="w-full px-8 py-4 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                className="w-full px-8 py-4 bg-linear-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                             >
                                 {loginMutation.isPending ? (
                                     <>

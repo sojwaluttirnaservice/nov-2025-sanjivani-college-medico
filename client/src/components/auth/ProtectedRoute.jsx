@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Navigate, useLocation, Outlet } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import { selectIsAuthenticated, selectCurrentUser, selectCurrentToken, setCredentials, logout } from '../../redux/slices/authSlice'
+import { selectIsAuthenticated, selectCurrentUser, setCredentials, logout } from '../../redux/slices/authSlice'
 import { instance } from '../../utils/instance'
 import message from '../../utils/message'
 import { Loader2 } from 'lucide-react'
@@ -11,7 +11,6 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
     const location = useLocation()
     const isAuthenticated = useSelector(selectIsAuthenticated)
     const user = useSelector(selectCurrentUser)
-    const token = useSelector(selectCurrentToken)
 
     // Local state to track verification process on reload
     const [isVerifying, setIsVerifying] = useState(!isAuthenticated && !!localStorage.getItem('token'))

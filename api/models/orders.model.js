@@ -1,4 +1,4 @@
-const { query } = require("../utils/query/query");
+const { query, queryOne } = require("../utils/query/query");
 
 const ordersModel = {
   // Get all orders for a pharmacy
@@ -53,15 +53,19 @@ const ordersModel = {
 
     const itemsSql = `
       SELECT 
-        oi.*, 
+        oi.id,
+        oi.medicine_id,
+        oi.quantity,
+        oi.unit_price,
+        oi.subtotal,
         m.name as medicine_name, 
-        m.brand
+        m.manufacturer as brand
       FROM order_items oi
       JOIN medicines m ON oi.medicine_id = m.id
       WHERE oi.order_id = ?
     `;
 
-    const [order] = await query(orderSql, [orderId]);
+    const order = await queryOne(orderSql, [orderId]);
     if (!order) return null;
 
     const items = await query(itemsSql, [orderId]);
@@ -70,6 +74,10 @@ const ordersModel = {
 
   // Update order status
   updateStatus: (orderId, status) => {
+    if (status === "DELIVERED") {
+      const sql = `UPDATE orders SET order_status = ?, delivered_at = NOW() WHERE id = ?`;
+      return query(sql, [status, orderId]);
+    }
     const sql = `UPDATE orders SET order_status = ? WHERE id = ?`;
     return query(sql, [status, orderId]);
   },
@@ -85,23 +93,36 @@ const ordersModel = {
     const q = `
         INSERT INTO orders (
             customer_id, pharmacy_id, prescription_id, total_amount, 
-            payment_status, order_status
-        ) VALUES (?, ?, ?, ?, ?, ?)
+            payment_status, order_status, delivery_address, delivery_agent_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     return query(q, [
       data.customer_id,
       data.pharmacy_id,
       data.prescription_id || null,
       data.total_amount,
-      "PENDING",
-      "CONFIRMED",
+      data.payment_status || "PENDING",
+      data.order_status || "CONFIRMED",
+      data.delivery_address || "Pick up at Store",
+      data.delivery_agent_id || null,
     ]);
   },
 
   // Add item to order
   addOrderItem: (data) => {
-    const q = `INSERT INTO order_items (order_id, medicine_id, quantity) VALUES (?, ?, ?)`;
-    return query(q, [data.order_id, data.medicine_id, data.quantity]);
+    const unitPrice = parseFloat(data.price || 0);
+    const qty = parseInt(data.quantity || 1);
+    const q = `
+      INSERT INTO order_items (order_id, medicine_id, quantity, unit_price, subtotal)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    return query(q, [
+      data.order_id,
+      data.medicine_id,
+      qty,
+      unitPrice,
+      unitPrice * qty,
+    ]);
   },
 
   // Get pharmacy stats (Revenue, Active Orders)
@@ -114,8 +135,7 @@ const ordersModel = {
       FROM orders
       WHERE pharmacy_id = ?
     `;
-    const results = await query(sql, [pharmacyId]);
-    return results[0];
+    return queryOne(sql, [pharmacyId]);
   },
 };
 

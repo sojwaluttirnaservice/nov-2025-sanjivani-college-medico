@@ -2,6 +2,7 @@ const pharmaciesModel = require("../../models/pharmacies.model");
 const asyncHandler = require("../../utils/asyncHandler");
 const { sendError, sendSuccess } = require("../../utils/responses/ApiResponse");
 const STATUS = require("../../utils/status");
+const inventoryService = require("../../services/inventoryService");
 
 /**
  * Create or Update pharmacy profile
@@ -12,8 +13,15 @@ const pharmaciesController = {
   upsertPharmacy: asyncHandler(async (req, res) => {
     const userId = req.user.id;
 
-    const { pharmacy_name, license_no, contact_no, address, city, pincode } =
-      req.body;
+    const {
+      pharmacy_name,
+      license_no,
+      contact_no,
+      address,
+      city,
+      pincode,
+      default_delivery_agent_id,
+    } = req.body;
 
     // Basic validation
     if (!pharmacy_name || !license_no || !contact_no || !address) {
@@ -36,10 +44,11 @@ const pharmaciesController = {
       address,
       city: city || null,
       pincode: pincode || null,
+      default_delivery_agent_id: default_delivery_agent_id || null,
     };
 
     // UPDATE
-    if (existingPharmacy && existingPharmacy.length) {
+    if (existingPharmacy) {
       await pharmaciesModel.updateByUserId(userId, payload);
 
       return sendSuccess(
@@ -50,7 +59,23 @@ const pharmaciesController = {
     }
 
     // CREATE
-    await pharmaciesModel.create(payload);
+    const insertResult = await pharmaciesModel.create(payload);
+
+    // Seed default inventory for the newly created pharmacy
+    try {
+      if (insertResult && insertResult.insertId) {
+        await inventoryService.seedDefaultInventory(insertResult.insertId);
+      } else {
+        // Fallback: fetch the pharmacy we just created to get its ID
+        const newPharmacy = await pharmaciesModel.checkByUserId(userId);
+        if (newPharmacy) {
+          await inventoryService.seedDefaultInventory(newPharmacy.pharmacy_id);
+        }
+      }
+    } catch (err) {
+      console.error("Error seeding default inventory:", err);
+      // We don't fail the request if seeding fails, as the profile is already created
+    }
 
     return sendSuccess(
       res,
@@ -67,7 +92,7 @@ const pharmaciesController = {
 
     const pharmacy = await pharmaciesModel.checkByUserId(userId);
 
-    if (!pharmacy || !pharmacy.length) {
+    if (!pharmacy) {
       return sendSuccess(res, STATUS.OK, "Pharmacy profile not found", {
         exists: false,
         profile: null,
@@ -76,7 +101,7 @@ const pharmaciesController = {
 
     return sendSuccess(res, STATUS.OK, "Pharmacy profile fetched", {
       exists: true,
-      profile: pharmacy[0],
+      profile: pharmacy,
     });
   }),
 
@@ -85,13 +110,7 @@ const pharmaciesController = {
    */
   getPharmacyById: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const pharmacyData = await pharmaciesModel.getById(id);
-
-    // Provide robust checking for array response
-    const pharmacy =
-      Array.isArray(pharmacyData) && pharmacyData.length
-        ? pharmacyData[0]
-        : null;
+    const pharmacy = await pharmaciesModel.getById(id);
 
     if (!pharmacy) {
       return sendError(res, STATUS.NOT_FOUND, "Pharmacy not found");

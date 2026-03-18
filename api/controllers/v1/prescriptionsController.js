@@ -69,7 +69,7 @@ const prescriptionsController = {
     console.log("reading in here");
     // const customerId = req.user.customer_id; // from auth middleware
 
-    const [prescription] = await prescriptionsModel.getById(id);
+    const prescription = await prescriptionsModel.getById(id);
 
     if (!prescription) {
       return sendError(res, STATUS.NOT_FOUND, "Prescription not found");
@@ -86,7 +86,7 @@ const prescriptionsController = {
       return sendError(res, STATUS.FORBIDDEN, "Access denied");
     }
 
-    const [analysis] =
+    const analysis =
       await prescriptionAnalysisModel.getLatestByPrescriptionId(id);
 
     return sendSuccess(res, STATUS.OK, "Prescription fetched", {
